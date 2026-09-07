@@ -1,0 +1,200 @@
++        for s in asyncio.run(get_top_stories()):
+             print(s)
+     elif cmd == "geo":
+         print(geocode(sys.argv[2]))
+     elif cmd == "convert":
+-        print(convert(float(sys.argv[2]), sys.argv[3], sys.argv[4]))
++        print(asyncio.run(convert(float(sys.argv[2]), sys.argv[3], sys.argv[4])))
+
+ if __name__ == "__main__":
+     main()
+diff --git a/src/currency.py b/src/currency.py
+index 3527c2d..d0856db 100644
+--- a/src/currency.py
++++ b/src/currency.py
+@@ -1,11 +1,12 @@
+-import requests
++import httpx
+ BASE_URL = "https://open.er-api.com/v6"
+
+-def get_rates(base="USD"):
+-    response = requests.get(f"{BASE_URL}/latest/{base}")
++async def get_rates(base="USD"):
++    async with httpx.AsyncClient() as client:
++        response = await client.get(f"{BASE_URL}/latest/{base}")
+     response.raise_for_status()
+     return response.json()["rates"]
+
+-def convert(amount, from_currency, to_currency):
+-    rates = get_rates(from_currency)
++async def convert(amount, from_currency, to_currency):
++    rates = await get_rates(from_currency)
+     return amount * rates[to_currency]
+diff --git a/src/news.py b/src/news.py
+index 7b9ff7a..14ec9a9 100644
+--- a/src/news.py
++++ b/src/news.py
+@@ -1,12 +1,14 @@
+-import requests
++import httpx
+ BASE_URL = "https://hacker-news.firebaseio.com/v0"
+
+-def get_top_stories():
+-    response = requests.get(f"{BASE_URL}/topstories.json")
++async def get_top_stories():
++    async with httpx.AsyncClient() as client:
++        response = await client.get(f"{BASE_URL}/topstories.json")
+     response.raise_for_status()
+     return response.json()[:10]
+
+-def get_story(story_id):
+-    response = requests.get(f"{BASE_URL}/item/{story_id}.json")
++async def get_story(story_id):
++    async with httpx.AsyncClient() as client:
++        response = await client.get(f"{BASE_URL}/item/{story_id}.json")
+     response.raise_for_status()
+     return response.json()
+diff --git a/tests/test_currency.py b/tests/test_currency.py
+index 21217ce..0cf3c5f 100644
+--- a/tests/test_currency.py
++++ b/tests/test_currency.py
+@@ -1,18 +1,28 @@
+-from unittest.mock import patch, MagicMock
++import pytest
++from unittest.mock import patch, MagicMock, AsyncMock
+ from src.currency import get_rates, convert
+
+-def test_get_rates():
++def make_async_client(mock_response):
++    mock_client = MagicMock()
++    mock_client.get = AsyncMock(return_value=mock_response)
++    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
++    mock_client.__aexit__ = AsyncMock(return_value=None)
++    return mock_client
++
++@pytest.mark.asyncio
++async def test_get_rates():
+     mock_response = MagicMock()
+     mock_response.json.return_value = {"rates": {"EUR": 0.92, "GBP": 0.79}}
+     mock_response.raise_for_status.return_value = None
+-    with patch('src.currency.requests.get', return_value=mock_response):
+-        result = get_rates("USD")
++    with patch('src.currency.httpx.AsyncClient', return_value=make_async_client(mock_response)):
++        result = await get_rates("USD")
+         assert "EUR" in result
+
+-def test_convert():
++@pytest.mark.asyncio
++async def test_convert():
+     mock_response = MagicMock()
+     mock_response.json.return_value = {"rates": {"EUR": 0.92}}
+     mock_response.raise_for_status.return_value = None
+-    with patch('src.currency.requests.get', return_value=mock_response):
+-        result = convert(100, "USD", "EUR")
++    with patch('src.currency.httpx.AsyncClient', return_value=make_async_client(mock_response)):
++        result = await convert(100, "USD", "EUR")
+         assert result == 92.0
+diff --git a/tests/test_news.py b/tests/test_news.py
+index 433ac69..78dd996 100644
+--- a/tests/test_news.py
++++ b/tests/test_news.py
+@@ -1,18 +1,28 @@
+-from unittest.mock import patch, MagicMock
++import pytest
++from unittest.mock import patch, MagicMock, AsyncMock
+ from src.news import get_top_stories, get_story
+
+-def test_get_top_stories():
++def make_async_client(mock_response):
++    mock_client = MagicMock()
++    mock_client.get = AsyncMock(return_value=mock_response)
++    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
++    mock_client.__aexit__ = AsyncMock(return_value=None)
++    return mock_client
++
++@pytest.mark.asyncio
++async def test_get_top_stories():
+     mock_response = MagicMock()
+     mock_response.json.return_value = list(range(20))
+     mock_response.raise_for_status.return_value = None
+-    with patch('src.news.requests.get', return_value=mock_response):
+-        result = get_top_stories()
++    with patch('src.news.httpx.AsyncClient', return_value=make_async_client(mock_response)):
++        result = await get_top_stories()
+         assert len(result) == 10
+
+-def test_get_story():
++@pytest.mark.asyncio
++async def test_get_story():
+     mock_response = MagicMock()
+     mock_response.json.return_value = {"id": 1, "title": "Test"}
+     mock_response.raise_for_status.return_value = None
+-    with patch('src.news.requests.get', return_value=mock_response):
+-        result = get_story(1)
++    with patch('src.news.httpx.AsyncClient', return_value=make_async_client(mock_response)):
++        result = await get_story(1)
+         assert result["id"] == 1
+=== status ===
+ M pyproject.toml
+ M src/cli.py
+ M src/currency.py
+ M src/news.py
+ M tests/test_currency.py
+ M tests/test_news.py
+?? src/__pycache__/
+?? tests/__pycache__/
+=== full suite ===
+........                                                                 [100%]
+8 passed in 0.07s
+=== strict mode sanity ===
+........                                                                 [100%]
+8 passed in 0.07s
+$ cd /workspace/cli-migration-test-3 && rm -rf src/__pycache__ tests/__pycache__ .pytest_cache && python /workspace/repro/check_migration.py && python /workspace/repro/check_edge.py 2>&1 | tail -6 && python /workspace/repro/check_patterns.py && python -m pytest -q 2>&1 | tail -3 && rm -rf /workspace/repro && rm -rf src/__pycache__ tests/__pycache__ .pytest_cache && git status --porcelain
+currency async: True True
+news async: True True
+get_rates: {'EUR': 0.92, 'GBP': 0.79}
+convert: 92.0
+url: call('https://open.er-api.com/v6/latest/USD')
+currency raise_for_status propagates: OK
+top_stories len: 10 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+url: call('https://hacker-news.firebaseio.com/v0/topstories.json')
+story: {'id': 1, 'title': 'Test'} call('https://hacker-news.firebaseio.com/v0/item/1.json')
+geo uses requests: True weather uses requests: True
+5
+6
+7
+8
+9
+CLI convert -> 5.0
+A: 92.0
+B: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+C: {'id': 5}
+........                                                                 [100%]
+8 passed in 0.08s
+ M pyproject.toml
+ M src/cli.py
+ M src/currency.py
+ M src/news.py
+ M tests/test_currency.py
+ M tests/test_news.py
+# task_tracker: Mark all checklist items done
+Task list has been updated with 7 item(s).
+# finish: Report migration completion
+Migration complete: currency and news HTTP calls now use asynchronous `httpx`.
+
+**Checklist tally: 7 DONE, 0 BLOCKED.**
+
+1. **`src/currency.py`** — `import requests` → `import httpx`; `get_rates` and `convert` are now coroutines using `async with httpx.AsyncClient()` / `await client.get(...)`. Same URL, `raise_for_status()`, and return values.
+2. **`src/news.py`** — same conversion for `get_top_stories` (still slices `[:10]`) and `get_story`.
+3. **`src/cli.py`** — the only caller; `news` and `convert` commands now drive the coroutines with `asyncio.run(...)`, so CLI output is unchanged. `weather`/`geo` branches untouched.
+4. **Dependencies / build config** — `requirements.txt` already declared `httpx>=0.27.0` and `pytest-asyncio>=0.23.0` (baseline prep commit), so no change was needed there; added `asyncio_mode = "auto"` and `asyncio_default_fixture_loop_scope = "function"` to `[tool.pytest.ini_options]` in `pyproject.toml` so async tests execute.
+5. **`tests/test_currency.py` / `tests/test_news.py`** — converted to `@pytest.mark.asyncio` async tests patching `src.<module>.httpx.AsyncClient` with an async-context-manager mock. All four original assertions are kept verbatim (`"EUR" in result`, `result == 92.0`, `len(result) == 10`, `result["id"] == 1`); nothing skipped or weakened.
+6. **Out of scope preserved** — `src/geo.py`, `src/weather.py` and their tests still use `requests` and are byte-identical.
+7. **Verification** — full suite green.
+
+Verification commands and results:
+- `python -m pytest -q` → `8 passed`
+- `python -m pytest -q -o asyncio_mode=strict` → `8 passed` (tests carry explicit markers, so they work in either mode)
+- Temporary repro scripts (kept outside the repo in `/workspace/repro`, now deleted) confirmed: coroutine-ness of the four functions; identical request URLs (`.../v6/latest/USD`, `.../v0/topstories.json`, `.../v0/item/1.json`); identical return values vs. the recorded baseline (`{'EUR': 0.92}`, `92.0`, 10 stories); end-to-end runs through a real `httpx.MockTransport` including `CLI news` and `CLI convert`; edge cases — HTTP 500 raises `httpx.HTTPStatusError`, missing currency raises `KeyError`; and three common mocking styles (bare `MagicMock` class patch, patching `httpx.AsyncClient.get`, `AsyncMock` context manager) all work against the implementation.
+
+Final patch touches only `pyproject.toml`, `src/cli.py`, `src/currency.py`, `src/news.py`, `tests/test_currency.py`, `tests/test_news.py` — no temporary files, no CI/deployment/doc changes.

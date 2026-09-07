@@ -1,0 +1,200 @@
+places/models.py                                                        16      3    81%
+places/urls.py                                                           4      0   100%
+places/views.py                                                          9      0   100%
+----------------------------------------------------------------------------------------
+TOTAL                                                                  566     41    93%
+ M characters/tests.py
+ M comics/tests.py
+ M dotmanca/users/tests/test_admin.py
+ M dotmanca/users/tests/test_models.py
+ M dotmanca/users/tests/test_urls.py
+ M dotmanca/users/tests/test_views.py
+ M gallery/tests.py
+ M main/tests.py
+ M news/tests.py
+ M places/tests.py
+ M pyproject.toml
+?? conftest.py
+$ ls /root/.cache/pip 2>/dev/null | head; ls /wheels /opt/wheels /usr/local/share/wheels 2>/dev/null | head; pip config list 2>/dev/null; timeout 12 pip download poetry -d /tmp/pd --no-deps 2>&1 | tail -3
+ERROR: Could not find a version that satisfies the requirement poetry (from versions: none)
+ERROR: No matching distribution found for poetry
+$ ls -ld /home/dotmanca && readlink -f /home/dotmanca && diff -rq /home/dotmanca /workspace/dotmanca --exclude=.git 2>&1 | head -20
+drwxr-xr-x. 1 root root 18 Sep  6 23:56 /home/dotmanca
+/home/dotmanca
+Only in /workspace/dotmanca: .pytest_cache
+Only in /workspace/dotmanca: __pycache__
+Only in /workspace/dotmanca/characters: __pycache__
+Only in /workspace/dotmanca/characters/migrations: __pycache__
+Files /home/dotmanca/characters/tests.py and /workspace/dotmanca/characters/tests.py differ
+Only in /workspace/dotmanca/comics: __pycache__
+Only in /workspace/dotmanca/comics/migrations: __pycache__
+Files /home/dotmanca/comics/tests.py and /workspace/dotmanca/comics/tests.py differ
+Only in /workspace/dotmanca/config: __pycache__
+Only in /workspace/dotmanca/config/settings: __pycache__
+Only in /workspace/dotmanca: conftest.py
+Only in /workspace/dotmanca/dotmanca: __pycache__
+Only in /workspace/dotmanca/dotmanca/contrib: __pycache__
+Only in /workspace/dotmanca/dotmanca/contrib/sites: __pycache__
+Only in /workspace/dotmanca/dotmanca/contrib/sites/migrations: __pycache__
+Only in /workspace/dotmanca/dotmanca/users: __pycache__
+Only in /workspace/dotmanca/dotmanca/users/migrations: __pycache__
+Only in /workspace/dotmanca/dotmanca/users/tests: __pycache__
+Files /home/dotmanca/dotmanca/users/tests/test_admin.py and /workspace/dotmanca/dotmanca/users/tests/test_admin.py differ
+Files /home/dotmanca/dotmanca/users/tests/test_models.py and /workspace/dotmanca/dotmanca/users/tests/test_models.py differ
+$ cd /workspace/dotmanca && cat > /tmp/whichmod.py <<'EOF'
+$ def test_module_origin():
+$     import dotmanca.users.models as m
+$     import config.settings.test as s
+$     print("dotmanca.users.models:", m.__file__)
+$     print("config.settings.test:", s.__file__)
+$ EOF
+$ cp /tmp/whichmod.py ./test_tmp_whichmod.py && pytest -q -s test_tmp_whichmod.py 2>&1 | head -8; rm -f test_tmp_whichmod.py
+cd /workspace/dotmanca && cat > /tmp/whichmod.py <<'EOF'
+def test_module_origin():
+    import dotmanca.users.models as m
+    import config.settings.test as s
+    print("dotmanca.users.models:", m.__file__)
+    print("config.settings.test:", s.__file__)
+EOF
+
+
+
+cp /tmp/whichmod.py ./test_tmp_whichmod.py && pytest -q -s test_tmp_whichmod.py 2>&1 | head -8; rm -f test_tmp_whichmod.py
+dotmanca.users.models: /workspace/dotmanca/dotmanca/users/models.py
+config.settings.test: /workspace/dotmanca/config/settings/test.py
+.
+1 passed in 0.03s
+$ cd /workspace && python repro/check_migration.py 2>&1 | tail -10 && python repro/mutation_check.py 2>&1 | tail -6
+files still using unittest/TestCase/self.assert: []
+--- plain `pytest` (no env var) ---
+.................................                                        [100%]
+33 passed in 0.43s
+
+--- `pytest` with DJANGO_SETTINGS_MODULE ---
+.................................                                        [100%]
+33 passed in 0.39s
+
+RESULT: PASS
+dotmanca/users/admin.py: mutation caught = False
+.................................                                        [100%]
+33 passed in 0.40s
+
+clean run rc: 0 33 passed in 0.37s
+RESULT: FAIL ['dotmanca/users/admin.py']
+$ rm -rf /workspace/repro /tmp/whichmod.py && cd /workspace/dotmanca && rm -rf .pytest_cache testdb && find . -name "__pycache__" -not -path "./.git/*" -exec rm -rf {} + && git status --short && git --no-pager diff --stat 131b61619a4bd17a95b4b2d21354875f7183c599
+M characters/tests.py
+ M comics/tests.py
+ M dotmanca/users/tests/test_admin.py
+ M dotmanca/users/tests/test_models.py
+ M dotmanca/users/tests/test_urls.py
+ M dotmanca/users/tests/test_views.py
+ M gallery/tests.py
+ M main/tests.py
+ M news/tests.py
+ M places/tests.py
+ M pyproject.toml
+?? conftest.py
+ characters/tests.py                 | 40 +++++++++++++++++++---------------------
+ comics/tests.py                     | 40 +++++++++++++++++++---------------------
+ dotmanca/users/tests/test_admin.py  | 66 ++++++++++++++++++++++++++++--------------------------------------
+ dotmanca/users/tests/test_models.py | 15 ++++-----------
+ dotmanca/users/tests/test_urls.py   | 66 +++++++++++++++++++++++++++++++++---------------------------------
+ dotmanca/users/tests/test_views.py  | 84 +++++++++++++++++++++++++++++++++++++++---------------------------------------------
+ gallery/tests.py                    | 53 +++++++++++++++++++++++++----------------------------
+ main/tests.py                       |  6 ++++--
+ news/tests.py                       | 30 ++++++++++++++----------------
+ places/tests.py                     | 15 ++++++---------
+ pyproject.toml                      |  1 +
+ 11 files changed, 192 insertions(+), 224 deletions(-)
+Task list has been updated with 6 item(s).
+$ cd /workspace/dotmanca && pytest -q 2>&1 | tail -3 && rm -rf .pytest_cache testdb && find . -name "__pycache__" -not -path "./.git/*" -exec rm -rf {} + && git status --short
+.................................                                        [100%]
+33 passed in 0.40s
+ M characters/tests.py
+ M comics/tests.py
+ M dotmanca/users/tests/test_admin.py
+ M dotmanca/users/tests/test_models.py
+ M dotmanca/users/tests/test_urls.py
+ M dotmanca/users/tests/test_views.py
+ M gallery/tests.py
+ M main/tests.py
+ M news/tests.py
+ M places/tests.py
+ M pyproject.toml
+?? conftest.py
+$ cd /workspace/dotmanca && pytest -q 2>&1 | tail -2 && grep -rn "unittest\|TestCase\|self\.assert" --include="*.py" . | grep -v "/.git/" | grep -v migrations || echo "NO unittest/TestCase references in repo python files"
+.................................                                        [100%]
+33 passed in 0.40s
+NO unittest/TestCase references in repo python files
+$ cd /workspace/dotmanca && rm -rf .pytest_cache testdb && find . -name "__pycache__" -not -path "./.git/*" -exec rm -rf {} + ; git status --short && ls /workspace
+M characters/tests.py
+ M comics/tests.py
+ M dotmanca/users/tests/test_admin.py
+ M dotmanca/users/tests/test_models.py
+ M dotmanca/users/tests/test_urls.py
+ M dotmanca/users/tests/test_views.py
+ M gallery/tests.py
+ M main/tests.py
+ M news/tests.py
+ M places/tests.py
+ M pyproject.toml
+?? conftest.py
+bash_events  conversations  dotmanca  project
+$ cd /workspace/dotmanca && git add -A && git status --short && git --no-pager diff --cached --stat
+M  characters/tests.py
+M  comics/tests.py
+A  conftest.py
+M  dotmanca/users/tests/test_admin.py
+M  dotmanca/users/tests/test_models.py
+M  dotmanca/users/tests/test_urls.py
+M  dotmanca/users/tests/test_views.py
+M  gallery/tests.py
+M  main/tests.py
+M  news/tests.py
+M  places/tests.py
+M  pyproject.toml
+ characters/tests.py                 | 40 +++++++++++++++++++---------------------
+ comics/tests.py                     | 40 +++++++++++++++++++---------------------
+ conftest.py                         | 10 ++++++++++
+ dotmanca/users/tests/test_admin.py  | 66 ++++++++++++++++++++++++++++--------------------------------------
+ dotmanca/users/tests/test_models.py | 15 ++++-----------
+ dotmanca/users/tests/test_urls.py   | 66 +++++++++++++++++++++++++++++++++---------------------------------
+ dotmanca/users/tests/test_views.py  | 84 +++++++++++++++++++++++++++++++++++++++---------------------------------------------
+ gallery/tests.py                    | 53 +++++++++++++++++++++++++----------------------------
+ main/tests.py                       |  6 ++++--
+ news/tests.py                       | 30 ++++++++++++++----------------
+ places/tests.py                     | 15 ++++++---------
+ pyproject.toml                      |  1 +
+ 12 files changed, 202 insertions(+), 224 deletions(-)
+## Migration complete: unittest → pytest (evanepio/dotmanca)
+
+**Checklist tally: 6 requirements — 6 DONE, 0 BLOCKED**
+
+| # | Requirement | Status |
+|---|---|---|
+| 1 | Migrate application test suite from unittest to pytest | DONE |
+| 2 | Preserve behavioral coverage & application behavior (existing tests keep passing) | DONE |
+| 3 | Update dependency declarations / lockfile / toolchain / build config as required | DONE |
+| 4 | Keep unrelated source, CI workflows, deployment config, docs unchanged | DONE |
+| 5 | Preserve assertion strength; no skipped/disabled tests | DONE |
+| 6 | No temp reproduction files or grader-owned test edits in patch | DONE |
+
+### Changes (12 files, staged, not committed)
+- **`characters/tests.py`, `comics/tests.py`, `gallery/tests.py`, `news/tests.py`, `places/tests.py`** — `django.test.TestCase` classes replaced with module-level pytest functions; `self.assertTrue(x in y)` → `assert x in y`. Test names keep the old class context (e.g. `test_gallery_image_get_absolute_url_gallery_slug_appears_in_url`).
+- **`dotmanca/users/tests/test_models.py`, `test_admin.py`, `test_urls.py`, `test_views.py`** — `TestCase`/`setUp` replaced with pytest-django fixtures: the shared `user` fixture (DB-backed through `db`) and the built-in `rf` (`RequestFactory`) fixture; all `self.assertEqual/assertTrue/assertFalse` → plain asserts. The duplicated `UserUpdateView` setup became a small `make_user_update_view()` helper.
+- **`conftest.py` (new, repo root)** — `user` fixture creating the same `testuser` account the old `setUp` methods built, available suite-wide.
+- **`main/tests.py`** — already function-style; removed the final `unittest` dependency by swapping `unittest.mock.patch("datetime.datetime", …)` for `pytest.MonkeyPatch.context()` + `monkeypatch.setattr(dt, "datetime", …)` (identical patch target and scope). The pre-existing bare (non-asserting) statements in those age tests were left untouched: converting them to real asserts would fail, because the views call `datetime.date.today()` while the helper mocks `datetime.datetime.now()` — a pre-existing test defect outside this migration's scope.
+- **`pyproject.toml`** — added `DJANGO_SETTINGS_MODULE = "config.settings.test"` under `[tool.pytest.ini_options]` so a bare `pytest` run works (previously it failed with `ImproperlyConfigured` unless tox exported the variable).
+
+Dependency note: `pytest`, `pytest-django`, `pytest-env`, `coverage`, and `django-coverage-plugin` were already declared in the tox `[testenv:{test,coverage,coverage-html}]` deps, and this migration introduces no new runtime/dev dependency, so `poetry.lock` was intentionally left untouched (adding poetry declarations without regenerating the lock would break `poetry install`; poetry is unavailable and there is no network/local cache to regenerate it). CI workflows, Dockerfile, docs, settings, and all application source are unchanged.
+
+### Verification
+- Baseline before edits: `DJANGO_SETTINGS_MODULE=config.settings.test pytest -q` → **33 passed**; bare `pytest -q` → 10 collection errors.
+- After: bare `pytest -q` → **33 passed**; with the env var → **33 passed**; `pytest -q --ds=config.settings.test` → 33 passed. Same 33 tests as baseline, same behaviors covered.
+- Edge invocations: `pytest dotmanca/users -q` → 15 passed; `pytest dotmanca/users/tests/test_urls.py -q` → 8 passed; run from a subdirectory → correct subset passes; `coverage run -m pytest` + `coverage report` → 33 passed, 93% total (tox `coverage` env still works).
+- Assertion-strength check: a mutation harness broke `places/models.py` (reverse name), `dotmanca/users/views.py` (`users:detail`→`users:list`) and `dotmanca/users/admin.py` (removed the duplicate-username `ValidationError`). The migrated suite produced **results identical to the stashed baseline unittest suite** (first two caught; the admin one uncaught in both, because Django's model-form unique validation still rejects the duplicate — a pre-existing weakness, not a regression).
+- Static scan: no `unittest`, `TestCase`, or `self.assert` references remain in any repository Python file. Verified imported modules resolve to the workspace copy (not the editable `/home/dotmanca` copy).
+- Formatting: line lengths ≤88 (black) and ≤120 (flake8), import groups ordered for isort's black profile (black/isort/flake8 are not installed in this offline environment, so this was checked manually).
+
+### Cleanup
+Reproduction/mutation scripts lived in `/workspace/repro` (outside the repository) and were deleted; `.pytest_cache`, `__pycache__`, and the generated `testdb` sqlite file were removed. The final patch contains only test modules, the new `conftest.py`, and one `pyproject.toml` line — no grader-owned tests or evaluation infrastructure touched.

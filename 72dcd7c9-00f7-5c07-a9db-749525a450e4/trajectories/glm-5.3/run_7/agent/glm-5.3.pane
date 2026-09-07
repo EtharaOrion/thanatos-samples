@@ -1,0 +1,200 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(END)
+$ q
+cd /workspace/dotmanca && git status --short && git diff --stat 131b61619a4bd17a95b4b2d21354875f7183c599
+ M characters/tests.py
+ M comics/tests.py
+ M dotmanca/users/tests/test_admin.py
+ M dotmanca/users/tests/test_models.py
+ M dotmanca/users/tests/test_urls.py
+ M dotmanca/users/tests/test_views.py
+ M gallery/tests.py
+ M main/tests.py
+ M news/tests.py
+ M places/tests.py
+ M poetry.lock
+ M pyproject.toml
+ characters/tests.py                 |  40 +++++++++++++++++++---------------------
+ comics/tests.py                     |  40 +++++++++++++++++++---------------------
+ dotmanca/users/tests/test_admin.py  |  84 +++++++++++++++++++++++++++++++++++++++++++-----------------------------------------
+ dotmanca/users/tests/test_models.py |  22 ++++++++++++----------
+ dotmanca/users/tests/test_urls.py   |  63 +++++++++++++++++++++++++++++----------------------------------
+ dotmanca/users/tests/test_views.py  |  96 +++++++++++++++++++++++++++++++++++++++++++++++++++---------------------------------------------
+ gallery/tests.py                    |  53 +++++++++++++++++++++++++----------------------------
+ main/tests.py                       |  46 ++++++++++++++++++++++++----------------------
+ news/tests.py                       |  30 ++++++++++++++----------------
+ places/tests.py                     |  15 ++++++---------
+ poetry.lock                         | 129 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ pyproject.toml                      |   8 ++++++++
+ 12 files changed, 378 insertions(+), 248 deletions(-)
+$ cd /workspace/dotmanca && git status --porcelain --ignored | grep -v ".pyc\|__pycache__" | head; ls /workspace | head; rm -f .coverage; ls /tmp/repro* /workspace/repro* 2>/dev/null
+M characters/tests.py
+ M comics/tests.py
+ M dotmanca/users/tests/test_admin.py
+ M dotmanca/users/tests/test_models.py
+ M dotmanca/users/tests/test_urls.py
+ M dotmanca/users/tests/test_views.py
+ M gallery/tests.py
+ M main/tests.py
+ M news/tests.py
+ M places/tests.py
+bash_events
+conversations
+dotmanca
+project
+$ cd /workspace/dotmanca && python -m pytest -q 2>&1 | tail -2 && python -m pytest -q dotmanca/users main characters comics gallery news places 2>&1 | tail -1
+.................................                                        [100%]
+33 passed in 0.38s
+33 passed in 0.37s
+$ cd /workspace/dotmanca && grep -rn "unittest\|django.test\|TestCase" --include="*.py" characters comics gallery main news places dotmanca config | grep -v migrations | grep -v config/settings; echo "grep done (empty = clean)"; git status --porcelain | grep -v "^ M" ; echo "untracked done"; python -m pytest -q 2>&1 | tail -1
+dotmanca/users/tests/test_views.py:2:from django.test import RequestFactory
+grep done (empty = clean)
+untracked done
+33 passed in 0.38s
+$ cd /workspace/dotmanca && sed -n '/pytest.ini_options/,/coverage.run/p' pyproject.toml; sed -n '/group.test/,/^\[/p' pyproject.toml | head -12
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+
+[tool.coverage.run]
+[tool.poetry.group.test.dependencies]
+pytest = ">=7.0"
+pytest-django = ">=4.5"
+pytest-env = ">=0.8"
+coverage = ">=7.0"
+django-coverage-plugin = ">=3.0"
+
+[tool.pytest.ini_options]
+$ cd /workspace/dotmanca && grep -c "tool.pytest.ini_options" pyproject.toml && python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['tool']['pytest']['ini_options'])"
+1
+{'DJANGO_SETTINGS_MODULE': 'config.settings.test', 'python_files': ['tests.py', 'test_*.py', '*_tests.py']}
+# finish: unittest→pytest migration complete, 33 tests pass
+Migration from unittest to pytest completed for the dotmanca repository. All 7 checklist requirements DONE, 0 BLOCKED.
+
+Summary of changes (12 files):
+1. App tests (characters, comics, gallery, news, places tests.py) rewritten as pytest-style functions/fixtures — behavior and assertion strength preserved.
+2. dotmanca/users tests (test_admin.py, test_models.py, test_urls.py, test_views.py) rewritten as pytest; unittest.mock.patch replaced with monkeypatch where applicable; RequestFactory retained where appropriate.
+3. main/tests.py converted to pytest/monkeypatch.
+4. pyproject.toml: added [tool.poetry.group.test.dependencies] with pytest>=7.0, pytest-django>=4.5, pytest-env>=0.8, coverage>=7.0, django-coverage-plugin>=3.0; [tool.pytest.ini_options] now sets DJANGO_SETTINGS_MODULE = "config.settings.test" plus python_files patterns.
+5. poetry.lock: hand-updated (offline environment, poetry CLI absent, PyPI blocked) with package blocks and metadata.files entries matching the provisioned site-packages versions (pytest 9.1.1, pytest-django 4.14.0, pytest-env 1.7.0, coverage 7.16.0, django-coverage-plugin 3.2.2, plus transitive iniconfig/pluggy/packaging/pygments/python-dotenv); file validates as TOML.
+
+Verification:
+- python -m pytest -q → 33 passed (matches pre-migration test count)
+- Explicit collection across dotmanca/users, main, characters, comics, gallery, news, places → 33 passed
+- coverage run -m pytest + coverage report → green, 93% total coverage
+- Both pyproject.toml and poetry.lock parse as valid TOML
+
+Known limitation: lock file hashes reference provisioned wheel filenames and were not verified against a remote registry (network egress blocked; poetry CLI unavailable) — poetry install with local cache/packages is the supported path per task instructions.
+
+Patch contains no grader-owned tests, no CI/docs/source changes, and no temporary reproduction files.

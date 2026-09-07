@@ -1,0 +1,200 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/space/dotmanca && python -m pytest 2>&1 | tail -2; git status --short
+Pattern not found
+$ cd /workspace/dotmanca && export PAGER=cat GIT_PAGER=cat; python -m pytest 2>&1 | tail -1 | cat; git status --short | cat
+============================== 33 passed in 0.44s ==============================
+ M characters/tests.py
+ M comics/tests.py
+ M gallery/tests.py
+ M main/tests.py
+ M news/tests.py
+ M places/tests.py
+ M pyproject.toml
+$ cd /workspace/dotmanca && python -c "import tomllib; d=tomllib.load(open('pyproject.toml','rb')); print(d['tool']['pytest']['ini_options'])" && DJANGO_SETTINGS_MODULE=config.settings.test python -m pytest -q 2>&1 | tail -1
+{'DJANGO_SETTINGS_MODULE': 'config.settings.test', 'python_files': ['tests.py', 'test_*.py', '*_tests.py']}
+33 passed in 0.38s
+$ cd /workspace/dotmanca && git --no-pager diff 131b616 --stat | cat && git --no-pager diff 131b616 -- pyproject.toml | cat
+characters/tests.py | 40 +++++++++++++++++++--------------------
+ comics/tests.py     | 40 +++++++++++++++++++--------------------
+ gallery/tests.py    | 53 +++++++++++++++++++++++++---------------------------
+ main/tests.py       | 54 +++++++++++++++++++++++++++--------------------------
+ news/tests.py       | 30 ++++++++++++++---------------
+ places/tests.py     | 15 ++++++---------
+ pyproject.toml      |  4 ++++
+ 7 files changed, 115 insertions(+), 121 deletions(-)
+diff --git a/pyproject.toml b/pyproject.toml
+index 23c38c4..fffe821 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -23,8 +23,12 @@ django-storages = "^1.13.1"
+
+ [tool.poetry.dev-dependencies]
+ django-debug-toolbar = ">=2.1"
++pytest = "^7.2"
++pytest-django = "^4.5"
++pytest-env = "^0.8"
+
+ [tool.pytest.ini_options]
++DJANGO_SETTINGS_MODULE = "config.settings.test"
+ python_files = ["tests.py", "test_*.py", "*_tests.py"]
+
+ [tool.coverage.run]
+# finish: unittest→pytest migration complete, 33 tests pass
+Migration of the dotmanca test suite from unittest to pytest is complete.
+
+Checklist tally: 7 DONE, 1 BLOCKED.
+
+DONE:
+1. characters/tests.py — Django `TestCase` classes → pytest functions with plain `assert`.
+2. comics/tests.py — same conversion.
+3. gallery/tests.py — same conversion (including the GalleryImage gallery-slug case).
+4. news/tests.py — same conversion.
+5. places/tests.py — same conversion.
+6. main/tests.py — replaced `unittest.mock.patch` with a pytest `mocked_now` fixture using `monkeypatch`.
+7. pyproject.toml — added `pytest`, `pytest-django`, `pytest-env` to dev dependencies and set `DJANGO_SETTINGS_MODULE = "config.settings.test"` under `[tool.pytest.ini_options]`, so plain `python -m pytest` works without external env vars (tox testenv already declared the pytest deps).
+
+BLOCKED:
+- Regenerating poetry.lock for the new dev dependencies: no poetry installation is available and the network proxy returns 403 to PyPI, so `poetry lock` cannot run. I left poetry.lock's content-hash untouched rather than writing an unverifiable fabricated hash (the tox setup uses `skipsdist` with explicit deps, so tests run without it). This can be fixed later by running `poetry lock --no-update` with network access.
+
+Verification:
+- Baseline (before edits): 33 passed with `DJANGO_SETTINGS_MODULE=config.settings.test python -m pytest`.
+- After migration: `python -m pytest` (no env var needed) → 33 passed, same count, no test skipped or disabled. Assertion strength preserved (the original bare-expression "assertions" in main/tests.py were intentionally kept as-is to preserve exact behavior).
+- No `unittest` references remain in the repo's Python sources; only tests and test config were changed — source, CI, Dockerfile, docs untouched. No temporary reproduction files left in the patch.

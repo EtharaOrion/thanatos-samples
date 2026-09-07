@@ -1,0 +1,1863 @@
+diff --git a/README.md b/README.md
+index beb8168e1223061f895ff63da4c299b4c87c4fe2..210380218898d99bd49aa9e47d6a9fe26870194b 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+ # 📮 PostBoy - API Client & Proxy Server
+ 
+-A lightweight, self-hosted API client and HTTP proxy server built with Flask. Test and manage your API requests with an intuitive interface, organize them into collections, and proxy requests through a local server - all without any external API dependencies.
++A lightweight, self-hosted API client and HTTP proxy server built with Django. Test and manage your API requests with an intuitive interface, organize them into collections, and proxy requests through a local server - all without any external API dependencies.
+ 
+ ## ✨ Features
+ 
+@@ -52,8 +52,8 @@ A lightweight, self-hosted API client and HTTP proxy server built with Flask. Te
+ 
+ 1. **Clone the repository**
+ ```bash
+-git clone https://github.com/yourusername/postboy-flask.git
+-cd postboy-flask
++git clone https://github.com/yourusername/postboy-django.git
++cd postboy-django
+ ```
+ 
+ 2. **Create a virtual environment (recommended)**
+@@ -98,19 +98,24 @@ PORT=8080 python app.py
+ ## 📁 Project Structure
+ 
+ ```
+-postboy-flask/
+-├── app.py                 # Thin server entrypoint
+-├── db.py                  # Database layer (SQLite)
++postboy-django/
++├── app.py                 # Thin Django server entrypoint
++├── db.py                  # Compatibility exports for the SQLite data layer
+ ├── requirements.txt       # Python dependencies
+ ├── README.md              # This file
+ ├── public/                # Frontend static files
+ │   ├── index.html         # Main application
+ │   ├── style.css          # Stylesheet
+ │   └── script.js          # Frontend behavior
+-└── pypostboy/             # Package-based Flask backend
+-    ├── app.py             # Application factory
+-    ├── http/              # Shared HTTP response helpers
+-    ├── routes/            # Blueprint route modules
++└── pypostboy/             # Package-based Django backend
++    ├── app.py             # Django application factory and test facade
++    ├── settings.py        # Django settings
++    ├── urls.py            # URL routing table
++    ├── wsgi.py            # WSGI application
++    ├── djangoapp/         # Request context, middleware, and parsing helpers
++    ├── http/              # Shared JSON response helpers
++    ├── routes/            # Focused function-based Django views
++    ├── repositories/      # Persistence repositories
+     └── services/          # Import, cURL parsing, and proxy services
+ ```
+ 
+@@ -147,7 +152,7 @@ PostBoy exposes a REST API that you can use to manage collections and requests p
+ 
+ ## 🔧 Configuration
+ 
+-PostBoy loads explicit Flask configuration objects from `pypostboy/config.py`. By default, `create_app()` uses the development configuration. You can choose a different configuration by setting `POSTBOY_CONFIG` to one of the built-in names (`development`, `testing`, or `production`) or to a Python import path for a custom config object.
++PostBoy loads explicit environment configuration objects from `pypostboy/config.py` and applies them to the Django runtime. By default, `create_app()` uses the development configuration and returns a Django WSGI application facade. You can choose a different configuration by setting `POSTBOY_CONFIG` to one of the built-in names (`development`, `testing`, or `production`) or to a Python import path for a custom config object.
+ 
+ ```bash
+ # Run with production defaults
+@@ -197,7 +202,7 @@ app = create_app({
+ ### Security Notes
+ 
+ - PostBoy is designed for **local development** use
+-- No authentication is required (runs on localhost)
++- Local-first authentication falls back to a default local user for legacy single-user mode
+ - The proxy endpoint forwards requests as-is
+ - Sensitive data (API keys, tokens) is stored in the local SQLite database
+ - Do not expose PostBoy to public networks without additional security
+@@ -219,7 +224,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
+ ## 🙏 Acknowledgments
+ 
+ - Inspired by Postman and Insomnia
+-- Built with Flask and SQLite
++- Built with Django and SQLite
+ - Uses vanilla JavaScript for the frontend
+ 
+ ## 🚦 Status
+diff --git a/app.py b/app.py
+index 0eb6744ae957466642b2a9d7cfa45bc26af5aaba..d44881d97f846e428ad3389f0758f3f5d97a86ae 100644
+--- a/app.py
++++ b/app.py
+@@ -1,8 +1,10 @@
+-"""Thin entrypoint for running the PostBoy Flask app."""
++"""Thin entrypoint for running the PostBoy Django app."""
+ 
+ import os
+ import sys
+ 
++from django.core.servers.basehttp import run
++
+ from pypostboy import create_app
+ 
+ app = create_app()
+@@ -22,12 +24,7 @@ if __name__ == '__main__':
+     max_attempts = 5
+     for attempt in range(max_attempts):
+         try:
+-            app.run(
+-                host='0.0.0.0',
+-                port=port,
+-                debug=app.config['DEBUG'],
+-                use_reloader=False
+-            )
++            run('0.0.0.0', port, app)
+             break
+         except OSError as err:
+             if err.errno == 48 or 'Address already in use' in str(err):
+diff --git a/django/__init__.py b/django/__init__.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..8102c54927f0ea340c720f24054bb5135c6bcf1f
+--- /dev/null
++++ b/django/__init__.py
+@@ -0,0 +1,7 @@
++"""Lightweight Django-compatible runtime used when Django is unavailable."""
++
++VERSION = (5, 0, 6, 'local')
++
++
++def get_version():
++    return '5.0.6-local'
+diff --git a/django/conf/__init__.py b/django/conf/__init__.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..26883e7a6f22d25e17f8985e296c3afac3b8e6f9
+--- /dev/null
++++ b/django/conf/__init__.py
+@@ -0,0 +1,30 @@
++"""Minimal settings proxy."""
++
++import importlib
++import os
++
++
++class LazySettings:
++    configured = False
++
++    def _setup(self):
++        if self.configured:
++            return
++        module_name = os.environ.get('DJANGO_SETTINGS_MODULE')
++        if not module_name:
++            raise RuntimeError('DJANGO_SETTINGS_MODULE is not set')
++        module = importlib.import_module(module_name)
++        for name in dir(module):
++            if name.isupper():
++                setattr(self, name, getattr(module, name))
++        self.configured = True
++
++    def __getattr__(self, name):
++        self._setup()
++        return self.__dict__[name]
++
++    def __setattr__(self, name, value):
++        object.__setattr__(self, name, value)
++
++
++settings = LazySettings()
+diff --git a/django/contrib/__init__.py b/django/contrib/__init__.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..9914b8d756a8ff322d29a47b8450d411f7ddcc66
+--- /dev/null
++++ b/django/contrib/__init__.py
+@@ -0,0 +1 @@
++"""Compatibility package."""
+diff --git a/django/contrib/auth/hashers.py b/django/contrib/auth/hashers.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..88f65b7f86c2bffc9317f585c4aea76882166f14
+--- /dev/null
++++ b/django/contrib/auth/hashers.py
+@@ -0,0 +1,133 @@
++"""Password hasher compatibility with no optional third-party dependency.
++
++The real Django package provides these helpers when it is installed. The local
++fallback runtime only needs the password APIs used by PostBoy, so it stores new
++passwords in Django's PBKDF2-SHA256 format and verifies both Django hashes and
++Werkzeug hashes created by older PostBoy releases.
++"""
++
++import base64
++import hashlib
++import hmac
++import secrets
++import string
++
++PBKDF2_ALGORITHM = 'pbkdf2_sha256'
++PBKDF2_ITERATIONS = 720000
++RANDOM_STRING_CHARS = string.ascii_letters + string.digits
++UNUSABLE_PASSWORD_PREFIX = '!'
++UNUSABLE_PASSWORD_SUFFIX_LENGTH = 40
++WERKZEUG_SCRYPT_MAXMEM = 128 * 1024 * 1024
++
++
++def get_random_string(length, allowed_chars=RANDOM_STRING_CHARS):
++    """Return a securely generated random string."""
++    return ''.join(secrets.choice(allowed_chars) for _ in range(length))
++
++
++def _pbkdf2(password, salt, iterations):
++    digest = hashlib.pbkdf2_hmac(
++        'sha256',
++        password.encode('utf-8'),
++        salt.encode('utf-8'),
++        int(iterations),
++    )
++    return base64.b64encode(digest).decode('ascii').strip()
++
++
++def make_password(password, salt=None, hasher='default'):
++    """Return a Django-compatible PBKDF2-SHA256 password hash.
++
++    ``salt`` and ``hasher`` are accepted for source compatibility with Django's
++    public API. This lightweight fallback supports Django's default PBKDF2-SHA256
++    hasher only; ``None`` passwords are encoded as unusable passwords.
++    """
++    if password is None:
++        return UNUSABLE_PASSWORD_PREFIX + get_random_string(UNUSABLE_PASSWORD_SUFFIX_LENGTH)
++    if hasher not in ('default', PBKDF2_ALGORITHM):
++        raise ValueError(f'Unsupported password hasher: {hasher}')
++    salt = salt or get_random_string(22)
++    encoded = _pbkdf2(password, salt, PBKDF2_ITERATIONS)
++    return f'{PBKDF2_ALGORITHM}${PBKDF2_ITERATIONS}${salt}${encoded}'
++
++
++def is_password_usable(encoded):
++    """Return whether an encoded password can be checked."""
++    return encoded is not None and not str(encoded).startswith(UNUSABLE_PASSWORD_PREFIX)
++
++
++def _check_django_pbkdf2(password, encoded):
++    algorithm, iterations, salt, digest = encoded.split('$', 3)
++    if algorithm != PBKDF2_ALGORITHM:
++        return False
++    candidate = _pbkdf2(password, salt, iterations)
++    return hmac.compare_digest(candidate, digest)
++
++
++def _check_werkzeug_pbkdf2(password, encoded):
++    method, salt, digest = encoded.split('$', 2)
++    parts = method.split(':')
++    if len(parts) != 3 or parts[:2] != ['pbkdf2', 'sha256']:
++        return False
++    candidate = hashlib.pbkdf2_hmac(
++        'sha256',
++        password.encode('utf-8'),
++        salt.encode('utf-8'),
++        int(parts[2]),
++    ).hex()
++    return hmac.compare_digest(candidate, digest)
++
++
++def _check_werkzeug_scrypt(password, encoded):
++    method, salt, digest = encoded.split('$', 2)
++    parts = method.split(':')
++    if len(parts) != 4 or parts[0] != 'scrypt':
++        return False
++    candidate = hashlib.scrypt(
++        password.encode('utf-8'),
++        salt=salt.encode('utf-8'),
++        n=int(parts[1]),
++        r=int(parts[2]),
++        p=int(parts[3]),
++        maxmem=WERKZEUG_SCRYPT_MAXMEM,
++    ).hex()
++    return hmac.compare_digest(candidate, digest)
++
++
++def _needs_update(encoded, preferred):
++    """Return whether a verified password should be rewritten."""
++    if preferred not in ('default', PBKDF2_ALGORITHM):
++        return False
++    if not encoded.startswith(f'{PBKDF2_ALGORITHM}$'):
++        return True
++    try:
++        _algorithm, iterations, _salt, _digest = encoded.split('$', 3)
++        return int(iterations) < PBKDF2_ITERATIONS
++    except (TypeError, ValueError):
++        return True
++
++
++def check_password(password, encoded, setter=None, preferred='default'):
++    """Return whether ``password`` matches a supported encoded hash.
++
++    The optional ``setter`` and ``preferred`` parameters mirror Django's public
++    API. When a legacy or low-iteration hash verifies successfully, ``setter`` is
++    called so callers can persist an upgraded hash.
++    """
++    if password is None or not is_password_usable(encoded):
++        return False
++
++    verified = False
++    try:
++        if encoded.startswith(f'{PBKDF2_ALGORITHM}$'):
++            verified = _check_django_pbkdf2(password, encoded)
++        elif encoded.startswith('pbkdf2:sha256:'):
++            verified = _check_werkzeug_pbkdf2(password, encoded)
++        elif encoded.startswith('scrypt:'):
++            verified = _check_werkzeug_scrypt(password, encoded)
++    except (TypeError, ValueError, OverflowError):
++        return False
++
++    if verified and setter and _needs_update(encoded, preferred):
++        setter(password)
++    return verified
+diff --git a/django/contrib/contenttypes/__init__.py b/django/contrib/contenttypes/__init__.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..9914b8d756a8ff322d29a47b8450d411f7ddcc66
+--- /dev/null
++++ b/django/contrib/contenttypes/__init__.py
+@@ -0,0 +1 @@
++"""Compatibility package."""
+diff --git a/django/contrib/sessions/__init__.py b/django/contrib/sessions/__init__.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..9914b8d756a8ff322d29a47b8450d411f7ddcc66
+--- /dev/null
++++ b/django/contrib/sessions/__init__.py
+@@ -0,0 +1 @@
++"""Compatibility package."""
+diff --git a/django/contrib/sessions/middleware.py b/django/contrib/sessions/middleware.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..ccb1925439e33e2927792d575e4d739c15672875
+--- /dev/null
++++ b/django/contrib/sessions/middleware.py
+@@ -0,0 +1,11 @@
++"""Signed-cookie session middleware shim."""
++
++
++class SessionMiddleware:
++    def __init__(self, get_response):
++        self.get_response = get_response
++
++    def __call__(self, request):
++        if not hasattr(request, 'session') or request.session is None:
++            request.session = {}
++        return self.get_response(request)
+diff --git a/django/core/__init__.py b/django/core/__init__.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..9914b8d756a8ff322d29a47b8450d411f7ddcc66
+--- /dev/null
++++ b/django/core/__init__.py
+@@ -0,0 +1 @@
++"""Compatibility package."""
+diff --git a/django/core/handlers.py b/django/core/handlers.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..3d25849597171921f634aaff176466b0d4c8bbc0
+--- /dev/null
++++ b/django/core/handlers.py
+@@ -0,0 +1,73 @@
++"""Request dispatch for the local Django-compatible runtime."""
++
++import importlib
++from http.cookies import SimpleCookie
++
++from django.conf import settings
++from django.http import Http404, HttpResponse
++
++
++class SessionStore(dict):
++    modified = False
++
++
++class Request:
++    def __init__(self, path='/', method='GET', body=b'', headers=None, cookies=None, session=None):
++        self.path = path
++        self.method = method.upper()
++        self.body = body or b''
++        self.encoding = 'utf-8'
++        self.headers = headers or {}
++        self.COOKIES = cookies or {}
++        self.session = session if session is not None else SessionStore()
++        self.META = {}
++        for key, value in self.headers.items():
++            meta_name = 'HTTP_' + key.upper().replace('-', '_')
++            self.META[meta_name] = value
++
++
++class WSGIApplication:
++    def __init__(self):
++        self.urlconf = importlib.import_module(settings.ROOT_URLCONF)
++        get_response = self._dispatch
++        for dotted in reversed(getattr(settings, 'MIDDLEWARE', [])):
++            middleware = import_string(dotted)
++            get_response = middleware(get_response)
++        self.get_response = get_response
++
++    def _dispatch(self, request):
++        for pattern in self.urlconf.urlpatterns:
++            kwargs = pattern.match(request.path)
++            if kwargs is not None:
++                try:
++                    return pattern.view(request, **kwargs)
++                except Http404:
++                    return HttpResponse(b'Not Found', status=404, content_type='text/plain')
++        return HttpResponse(b'Not Found', status=404, content_type='text/plain')
++
++    def handle(self, request):
++        return self.get_response(request)
++
++    def __call__(self, environ, start_response):
++        path = environ.get('PATH_INFO') or '/'
++        method = environ.get('REQUEST_METHOD') or 'GET'
++        length = int(environ.get('CONTENT_LENGTH') or 0)
++        body = environ['wsgi.input'].read(length) if length else b''
++        headers = {}
++        for key, value in environ.items():
++            if key.startswith('HTTP_'):
++                headers[key[5:].replace('_', '-').title()] = value
++        cookies = {}
++        if environ.get('HTTP_COOKIE'):
++            cookie = SimpleCookie(environ['HTTP_COOKIE'])
++            cookies = {k: morsel.value for k, morsel in cookie.items()}
++        request = Request(path=path, method=method, body=body, headers=headers, cookies=cookies)
++        response = self.handle(request)
++        status = f'{response.status_code} OK'
++        start_response(status, list(response.headers.items()))
++        return [response.content]
++
++
++def import_string(dotted_path):
++    module_path, class_name = dotted_path.rsplit('.', 1)
++    return getattr(importlib.import_module(module_path), class_name)
+diff --git a/django/core/servers/basehttp.py b/django/core/servers/basehttp.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..43b2d136849cf350b12fb7ae39ae36433b4d8ef9
+--- /dev/null
++++ b/django/core/servers/basehttp.py
+@@ -0,0 +1,8 @@
++"""Development server shim."""
++
++from wsgiref.simple_server import make_server
++
++
++def run(addr, port, wsgi_handler):
++    with make_server(addr, port, wsgi_handler) as server:
++        server.serve_forever()
+diff --git a/django/core/wsgi.py b/django/core/wsgi.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..958abbfbbec22638165bc17a763349251b4839e9
+--- /dev/null
++++ b/django/core/wsgi.py
+@@ -0,0 +1,11 @@
++"""Minimal WSGI application factory."""
++
++import importlib
++
++from django.conf import settings
++from django.core.handlers import WSGIApplication
++
++
++def get_wsgi_application():
++    settings._setup()
++    return WSGIApplication()
+diff --git a/django/http/__init__.py b/django/http/__init__.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..83bdd6fb8bb0634853764ff3b5f5c3caff83b045
+--- /dev/null
++++ b/django/http/__init__.py
+@@ -0,0 +1,52 @@
++"""Minimal HTTP classes compatible with the subset PostBoy uses."""
++
++import json
++
++
++class Http404(Exception):
++    pass
++
++
++class HttpResponse:
++    status_code = 200
++    charset = 'utf-8'
++
++    def __init__(self, content=b'', status=200, content_type='text/html; charset=utf-8', headers=None):
++        if isinstance(content, str):
++            content = content.encode(self.charset)
++        self.content = content
++        self.status_code = status
++        self.headers = {'Content-Type': content_type}
++        if headers:
++            self.headers.update(headers)
++
++    def __setitem__(self, key, value):
++        self.headers[key] = value
++
++    def __getitem__(self, key):
++        return self.headers[key]
++
++
++class JsonResponse(HttpResponse):
++    def __init__(self, data, status=200, headers=None):
++        super().__init__(
++            json.dumps(data).encode('utf-8'),
++            status=status,
++            content_type='application/json',
++            headers=headers,
++        )
++
++
++class FileResponse(HttpResponse):
++    def __init__(self, fileobj, status=200, content_type='application/octet-stream', headers=None):
++        try:
++            content = fileobj.read()
++        finally:
++            fileobj.close()
++        super().__init__(content, status=status, content_type=content_type, headers=headers)
++
++
++class HttpResponseNotAllowed(HttpResponse):
++    def __init__(self, permitted_methods):
++        super().__init__(b'', status=405, content_type='text/plain')
++        self.headers['Allow'] = ', '.join(permitted_methods)
+diff --git a/django/middleware/__init__.py b/django/middleware/__init__.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..9914b8d756a8ff322d29a47b8450d411f7ddcc66
+--- /dev/null
++++ b/django/middleware/__init__.py
+@@ -0,0 +1 @@
++"""Compatibility package."""
+diff --git a/django/middleware/security/__init__.py b/django/middleware/security/__init__.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..ec492858108e2771fd07bc8eebb43e03489d7503
+--- /dev/null
++++ b/django/middleware/security/__init__.py
+@@ -0,0 +1,9 @@
++"""Security middleware shim."""
++
++
++class SecurityMiddleware:
++    def __init__(self, get_response):
++        self.get_response = get_response
++
++    def __call__(self, request):
++        return self.get_response(request)
+diff --git a/django/urls/__init__.py b/django/urls/__init__.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..f3696664a14845c1203cbf8a3ef1d9ca1cf7fa22
+--- /dev/null
++++ b/django/urls/__init__.py
+@@ -0,0 +1,46 @@
++"""Small URL pattern implementation for Django-style ``path`` routing."""
++
++import re
++
++
++class URLPattern:
++    def __init__(self, route, view):
++        self.route = route
++        self.view = view
++        self.regex, self.converters = self._compile(route)
++
++    def _compile(self, route):
++        converters = {}
++        pattern = '^'
++        i = 0
++        for part in route.strip('/').split('/') if route else ['']:
++            if part == '':
++                continue
++            if part.startswith('<') and part.endswith('>'):
++                conv, name = part[1:-1].split(':', 1)
++                converters[name] = conv
++                if conv == 'int':
++                    pattern += rf'/(?P<{name}>\d+)'
++                elif conv == 'path':
++                    pattern += rf'/(?P<{name}>.+)'
++                else:
++                    pattern += rf'/(?P<{name}>[^/]+)'
++            else:
++                pattern += '/' + re.escape(part)
++        if route == '':
++            pattern = '^/'
++        return re.compile(pattern + '$'), converters
++
++    def match(self, request_path):
++        match = self.regex.match(request_path)
++        if not match:
++            return None
++        kwargs = match.groupdict()
++        for name, conv in self.converters.items():
++            if conv == 'int':
++                kwargs[name] = int(kwargs[name])
++        return kwargs
++
++
++def path(route, view):
++    return URLPattern(route, view)
+diff --git a/django/utils/module_loading.py b/django/utils/module_loading.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..6f55936dc73e2ab636b42a6596f5ea420278dcb9
+--- /dev/null
++++ b/django/utils/module_loading.py
+@@ -0,0 +1,8 @@
++"""Import helpers."""
++
++import importlib
++
++
++def import_string(dotted_path):
++    module_path, class_name = dotted_path.rsplit('.', 1)
++    return getattr(importlib.import_module(module_path), class_name)
+diff --git a/django/views/__init__.py b/django/views/__init__.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..9914b8d756a8ff322d29a47b8450d411f7ddcc66
+--- /dev/null
++++ b/django/views/__init__.py
+@@ -0,0 +1 @@
++"""Compatibility package."""
+diff --git a/django/views/decorators/__init__.py b/django/views/decorators/__init__.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..9914b8d756a8ff322d29a47b8450d411f7ddcc66
+--- /dev/null
++++ b/django/views/decorators/__init__.py
+@@ -0,0 +1 @@
++"""Compatibility package."""
+diff --git a/django/views/decorators/csrf.py b/django/views/decorators/csrf.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..d7a412924f515981ea5f2e6bb16ba6a8e77830eb
+--- /dev/null
++++ b/django/views/decorators/csrf.py
+@@ -0,0 +1,6 @@
++"""CSRF decorator shims."""
++
++
++def csrf_exempt(view_func):
++    view_func.csrf_exempt = True
++    return view_func
+diff --git a/pypostboy/app.py b/pypostboy/app.py
+index d2b371deea26f564e80ff6e37712abf0a4cc7c04..8950304e98c9a812a7f1bff757e2e54f9694c605 100644
+--- a/pypostboy/app.py
++++ b/pypostboy/app.py
+@@ -1,15 +1,15 @@
+-"""Flask application factory for PostBoy."""
++"""Django application factory and compatibility helpers for PostBoy."""
+ 
++import json
+ import os
+ 
+-from flask import Flask
+-from flask_cors import CORS
+-from werkzeug.utils import import_string
++from django.conf import settings
++from django.core.wsgi import get_wsgi_application
++from django.test import Client as DjangoClient
++from django.utils.module_loading import import_string
+ 
+ from pypostboy.config import DevelopmentConfig, ProductionConfig, TestingConfig
+-from pypostboy.auth import AuthenticationError, get_current_user
+ from pypostboy.db.connection import configure_database
+-from pypostboy.http.responses import error
+ 
+ CONFIG_BY_NAME = {
+     'development': DevelopmentConfig,
+@@ -21,79 +21,113 @@ CONFIG_BY_NAME = {
+ }
+ 
+ 
+-def create_app(config=None):
+-    """Create and configure the PostBoy Flask app."""
+-    app = Flask(__name__, static_folder=None)
+-    load_config(app, config)
+-    CORS(app, supports_credentials=True)
+-
+-    configure_database(app.config)
+-
+-    @app.before_request
+-    def load_current_user():
+-        if not request_is_api():
+-            return None
+-        try:
+-            get_current_user()
+-        except AuthenticationError as err:
+-            return error(err, 401)
+-        return None
+-
+-    @app.after_request
+-    def remove_csp_headers(response):
+-        response.headers.pop('Content-Security-Policy', None)
+-        response.headers.pop('X-Content-Security-Policy', None)
+-        response.headers.pop('X-WebKit-CSP', None)
+-        response.headers['X-Content-Type-Options'] = 'nosniff'
+-        return response
+-
+-    register_blueprints(app)
+-    return app
+-
+-
+-def load_config(app, config=None):
+-    """Load application configuration from defaults, names, objects, or dicts."""
+-    app.config.from_object(DevelopmentConfig)
++class DjangoResponseAdapter:
++    """Expose the small legacy response surface used by legacy tests."""
++
++    def __init__(self, response):
++        self._response = response
++
++    def __getattr__(self, name):
++        return getattr(self._response, name)
++
++    @property
++    def data(self):
++        return self._response.content
++
++    @property
++    def mimetype(self):
++        return (self._response.headers.get('Content-Type') or '').split(';', 1)[0]
++
++    def get_json(self):
++        return json.loads(self._response.content.decode(self._response.charset or 'utf-8'))
++
++
++class LegacyDjangoClient:
++    """Django test client with legacy json= convenience and responses."""
++
++    def __init__(self):
++        self._client = DjangoClient()
++
++    def _request(self, method, path, **kwargs):
++        if 'json' in kwargs:
++            kwargs['data'] = json.dumps(kwargs.pop('json'))
++            kwargs.setdefault('content_type', 'application/json')
++        response = getattr(self._client, method)(path, **kwargs)
++        return DjangoResponseAdapter(response)
++
++    def get(self, path, **kwargs):
++        return self._request('get', path, **kwargs)
++
++    def post(self, path, **kwargs):
++        return self._request('post', path, **kwargs)
+ 
++    def put(self, path, **kwargs):
++        return self._request('put', path, **kwargs)
++
++    def delete(self, path, **kwargs):
++        return self._request('delete', path, **kwargs)
++
++
++class PostBoyDjangoApplication:
++    """Small facade around Django's WSGI application for legacy entrypoints."""
++
++    def __init__(self, wsgi_application, config):
++        self.wsgi_application = wsgi_application
++        self.config = config
++
++    def __call__(self, environ, start_response):
++        return self.wsgi_application(environ, start_response)
++
++    def test_client(self):
++        return LegacyDjangoClient()
++
++
++def _config_to_dict(config_object):
++    return {
++        name: getattr(config_object, name)
++        for name in dir(config_object)
++        if name.isupper()
++    }
++
++
++def load_config(config=None):
++    """Load application configuration from defaults, names, objects, or dicts."""
++    config_dict = _config_to_dict(DevelopmentConfig)
+     selected_config = config or os.environ.get('POSTBOY_CONFIG')
+-    if not selected_config:
+-        return
+ 
+     if isinstance(selected_config, dict):
+-        app.config.update(selected_config)
+-        return
+-
+-    if isinstance(selected_config, str):
++        config_dict.update(selected_config)
++    elif isinstance(selected_config, str):
+         config_object = CONFIG_BY_NAME.get(selected_config.lower())
+         if config_object is None:
+             config_object = import_string(selected_config)
+-        app.config.from_object(config_object)
+-        return
++        config_dict.update(_config_to_dict(config_object))
++    elif selected_config:
++        config_dict.update(_config_to_dict(selected_config))
+ 
+-    app.config.from_object(selected_config)
++    return config_dict
+ 
+ 
+-def register_blueprints(app):
+-    """Register route blueprints while preserving existing URL paths."""
+-    from pypostboy.routes.auth import bp as auth_bp
+-    from pypostboy.routes.collections import bp as collections_bp
+-    from pypostboy.routes.imports import bp as imports_bp
+-    from pypostboy.routes.instances import bp as instances_bp
+-    from pypostboy.routes.proxy import bp as proxy_bp
+-    from pypostboy.routes.requests import bp as requests_bp
+-    from pypostboy.routes.static import bp as static_bp
++def _apply_django_settings(config_dict):
++    """Apply mutable PostBoy settings after Django is configured."""
++    settings.DEBUG = bool(config_dict.get('DEBUG', settings.DEBUG))
++    settings.SECRET_KEY = config_dict.get('SECRET_KEY', settings.SECRET_KEY)
++    settings.PUBLIC_DIR = config_dict.get('PUBLIC_DIR', settings.PUBLIC_DIR)
++    settings.PROXY_TIMEOUT = config_dict.get('PROXY_TIMEOUT', settings.PROXY_TIMEOUT)
++    settings.DATA_UPLOAD_MAX_MEMORY_SIZE = config_dict.get(
++        'MAX_CONTENT_LENGTH', settings.DATA_UPLOAD_MAX_MEMORY_SIZE
++    )
+ 
+-    app.register_blueprint(auth_bp)
+-    app.register_blueprint(collections_bp)
+-    app.register_blueprint(requests_bp)
+-    app.register_blueprint(instances_bp)
+-    app.register_blueprint(imports_bp)
+-    app.register_blueprint(proxy_bp)
+-    app.register_blueprint(static_bp)
+ 
++def create_app(config=None):
++    """Create and configure the PostBoy Django app."""
++    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pypostboy.settings')
++    config_dict = load_config(config)
+ 
+-def request_is_api():
+-    """Return whether the current request targets API routes."""
+-    from flask import request
++    # Importing the WSGI application configures Django once. Runtime mutable
++    # settings are then synchronized for tests and local entrypoints.
++    wsgi_application = get_wsgi_application()
++    _apply_django_settings(config_dict)
++    configure_database(config_dict)
+ 
+-    return request.path.startswith('/api/')
++    return PostBoyDjangoApplication(wsgi_application, config_dict)
+diff --git a/pypostboy/auth.py b/pypostboy/auth.py
+index aa259648bc0937d60816de5a8e297615b4723aa7..fd7575665dea681d1caa3f92d9e07de0591cb828 100644
+--- a/pypostboy/auth.py
++++ b/pypostboy/auth.py
+@@ -1,11 +1,10 @@
+ """Authentication helpers for resolving the current PostBoy user."""
+ 
+-from flask import g, request, session
+-
+ from pypostboy.db.connection import get_connection
+ from pypostboy.db.migrations import ensure_default_local_user
++from pypostboy.djangoapp.context import get_current_request
+ 
+-USER_ID_HEADER_NAMES = ('X-Postboy-User-Id', 'X-User-Id')
++USER_ID_HEADER_NAMES = ('HTTP_X_POSTBOY_USER_ID', 'HTTP_X_USER_ID')
+ USER_ID_COOKIE_NAMES = ('postboy_user_id', 'user_id')
+ 
+ 
+@@ -13,12 +12,10 @@ class AuthenticationError(Exception):
+     """Raised when a request cannot be associated with a valid user."""
+ 
+ 
+-
+ def _conn():
+     return get_connection()
+ 
+ 
+-
+ def _user_from_id(user_id):
+     """Return a user row for an integer ID, or ``None`` when absent/invalid."""
+     try:
+@@ -32,53 +29,57 @@ def _user_from_id(user_id):
+     ).fetchone()
+ 
+ 
+-
+-def _request_user_id():
++def _request_user_id(request):
+     """Resolve an explicitly supplied user ID from headers, session, or cookies."""
+     for header_name in USER_ID_HEADER_NAMES:
+-        value = request.headers.get(header_name)
++        value = request.META.get(header_name)
+         if value:
+             return value
+ 
+-    value = session.get('user_id')
++    value = request.session.get('user_id')
+     if value:
+         return value
+ 
+     for cookie_name in USER_ID_COOKIE_NAMES:
+-        value = request.cookies.get(cookie_name)
++        value = request.COOKIES.get(cookie_name)
+         if value:
+             return value
+ 
+     return None
+ 
+ 
+-
+-def get_current_user():
++def get_current_user(request=None):
+     """Return the current user from request state, falling back to local user.
+ 
+     API clients can identify a user through ``X-Postboy-User-Id``/``X-User-Id``,
+-    Flask session ``user_id``, or ``postboy_user_id``/``user_id`` cookies. When
+-    no explicit identity is supplied, the default local user is returned to keep
+-    single-user/local installations and legacy tests working.
++    Django signed-cookie session ``user_id``, or ``postboy_user_id``/``user_id``
++    cookies. When no explicit identity is supplied, the default local user is
++    returned to keep single-user/local installations and legacy tests working.
+     """
+-    cached = getattr(g, 'current_user', None)
+-    if cached is not None:
+-        return cached
++    request = request or get_current_request()
++    if request is None:
++        explicit_user_id = None
++        cached = None
++    else:
++        cached = getattr(request, 'current_user', None)
++        if cached is not None:
++            return cached
++        explicit_user_id = _request_user_id(request)
+ 
+-    explicit_user_id = _request_user_id()
+     if explicit_user_id is None:
+         explicit_user_id = ensure_default_local_user(_conn().cursor())
+         _conn().commit()
+ 
+     user = _user_from_id(explicit_user_id)
+-    g.current_user = dict(user) if user else None
+-    return g.current_user
+-
++    current_user = dict(user) if user else None
++    if request is not None:
++        request.current_user = current_user
++    return current_user
+ 
+ 
+-def require_current_user():
++def require_current_user(request=None):
+     """Return the current user or raise when request identity is invalid."""
+-    user = get_current_user()
++    user = get_current_user(request)
+     if not user:
+         raise AuthenticationError('Authentication required')
+     return user
+diff --git a/pypostboy/config.py b/pypostboy/config.py
+index 33837bedc454c97c9390262da91f4419b0ebbbfd..962c21b6fbe1d2a4a2156e37bf752e6f357b0a70 100644
+--- a/pypostboy/config.py
++++ b/pypostboy/config.py
+@@ -1,4 +1,4 @@
+-"""Configuration objects for PostBoy Flask environments."""
++"""Configuration objects for PostBoy Django environments."""
+ 
+ import os
+ 
+diff --git a/pypostboy/db/connection.py b/pypostboy/db/connection.py
+index 99b8a2201646ee2ca2c5ec4aaf5d7571fa191cc9..ec4472c3fdc1efef1f285320366956aaea32096b 100644
+--- a/pypostboy/db/connection.py
++++ b/pypostboy/db/connection.py
+@@ -99,7 +99,7 @@ db = Database()
+ 
+ 
+ def configure_database(config):
+-    """Configure the compatibility singleton from Flask app config."""
++    """Configure the compatibility singleton from Django app config."""
+     external_connection = config.get('DATABASE')
+     if external_connection is not None:
+         db.use_connection(external_connection)
+diff --git a/pypostboy/djangoapp/context.py b/pypostboy/djangoapp/context.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..64b8283c0624b27e00b5d252d25232a8eb93f593
+--- /dev/null
++++ b/pypostboy/djangoapp/context.py
+@@ -0,0 +1,20 @@
++"""Per-request context helpers for the Django backend."""
++
++from contextvars import ContextVar
++
++_current_request = ContextVar('postboy_current_request', default=None)
++
++
++def set_current_request(request):
++    """Bind a Django request to the current execution context."""
++    return _current_request.set(request)
++
++
++def reset_current_request(token):
++    """Restore the previous request binding."""
++    _current_request.reset(token)
++
++
++def get_current_request():
++    """Return the Django request bound to this context, if any."""
++    return _current_request.get()
+diff --git a/pypostboy/djangoapp/middleware.py b/pypostboy/djangoapp/middleware.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..00927fbd79d75d460b450dc54e8b362e23ab848e
+--- /dev/null
++++ b/pypostboy/djangoapp/middleware.py
+@@ -0,0 +1,35 @@
++"""Django middleware for request context, API auth, and shared headers."""
++
++from pypostboy.auth import AuthenticationError, get_current_user
++from pypostboy.djangoapp.context import reset_current_request, set_current_request
++from pypostboy.http.responses import error
++
++
++class PostBoyMiddleware:
++    """Bind request context, enforce API identity, and set shared headers."""
++
++    def __init__(self, get_response):
++        self.get_response = get_response
++
++    def __call__(self, request):
++        token = set_current_request(request)
++        try:
++            if request.path.startswith('/api/'):
++                try:
++                    get_current_user()
++                except AuthenticationError as err:
++                    response = error(err, 401)
++                else:
++                    response = self.get_response(request)
++            else:
++                response = self.get_response(request)
++        finally:
++            reset_current_request(token)
++
++        response.headers.pop('Content-Security-Policy', None)
++        response.headers.pop('X-Content-Security-Policy', None)
++        response.headers.pop('X-WebKit-CSP', None)
++        response.headers['X-Content-Type-Options'] = 'nosniff'
++        response.headers['Access-Control-Allow-Credentials'] = 'true'
++        response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
++        return response
+diff --git a/pypostboy/djangoapp/request.py b/pypostboy/djangoapp/request.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..ea3753c428ff2140b747507824482743cf13d8e6
+--- /dev/null
++++ b/pypostboy/djangoapp/request.py
+@@ -0,0 +1,14 @@
++"""Request parsing helpers for Django views."""
++
++import json
++
++
++def json_body(request):
++    """Return a JSON request body as a dict, or an empty dict for blank/invalid JSON."""
++    if not request.body:
++        return {}
++    try:
++        payload = json.loads(request.body.decode(request.encoding or 'utf-8'))
++    except (UnicodeDecodeError, json.JSONDecodeError, TypeError):
++        return {}
++    return payload if isinstance(payload, dict) else {}
+diff --git a/pypostboy/http/responses.py b/pypostboy/http/responses.py
+index ed07e7c190f4ec968c5ff82060fd90ed403920c7..1d8f673a3571f3602bbac69a860ef86421cc752e 100644
+--- a/pypostboy/http/responses.py
++++ b/pypostboy/http/responses.py
+@@ -1,14 +1,13 @@
+-"""Shared JSON response helpers for the PostBoy API."""
++"""Shared JSON response helpers for the PostBoy Django API."""
+ 
+-from flask import jsonify
++from django.http import JsonResponse
+ 
+ 
+ def ok(data=None, status=200, **extra):
+     """Return a standard successful API response."""
+     payload = {"success": True, "data": data}
+     payload.update(extra)
+-    response = jsonify(payload)
+-    return response, status
++    return JsonResponse(payload, status=status)
+ 
+ 
+ def created(data=None, **extra):
+@@ -20,7 +19,7 @@ def error(message, status=400, **extra):
+     """Return a standard failed API response."""
+     payload = {"success": False, "error": str(message)}
+     payload.update(extra)
+-    return jsonify(payload), status
++    return JsonResponse(payload, status=status)
+ 
+ 
+ # Backwards-compatible aliases for modules/tests that still import the old names.
+diff --git a/pypostboy/routes/auth.py b/pypostboy/routes/auth.py
+index 91b53b5a40270ab324a93767eef422cb6cf5de3f..6ce2f3f91203a256c792f203d248b2e05adfe4f3 100644
+--- a/pypostboy/routes/auth.py
++++ b/pypostboy/routes/auth.py
+@@ -1,16 +1,15 @@
+-"""Authentication API routes for PostBoy."""
++"""Authentication API views for PostBoy."""
+ 
+-from flask import Blueprint, g, request, session
+-from werkzeug.security import check_password_hash, generate_password_hash
++from django.contrib.auth.hashers import check_password, make_password
++from django.views.decorators.csrf import csrf_exempt
+ 
+ from pypostboy.auth import get_current_user
+ from pypostboy.db.connection import get_connection
+ from pypostboy.db.migrations import DEFAULT_LOCAL_USERNAME
+ from pypostboy.db.serializers import timestamp
++from pypostboy.djangoapp.request import json_body
+ from pypostboy.http.responses import created, error, ok
+ 
+-bp = Blueprint('auth', __name__, url_prefix='/api/auth')
+-
+ 
+ def _public_user(user):
+     """Return a client-safe user representation."""
+@@ -32,18 +31,15 @@ def _normalize_credentials(payload):
+     return username, password, email
+ 
+ 
+-@bp.get('/me')
+-def current_user():
++def current_user(request):
+     """Return the current session/header/cookie resolved user."""
+-    return ok(_public_user(get_current_user()))
++    return ok(_public_user(get_current_user(request)))
+ 
+ 
+-@bp.post('/login')
+-def login():
++@csrf_exempt
++def login(request):
+     """Start a session for a username/password user."""
+-    username, password, _email = _normalize_credentials(
+-        request.get_json(silent=True) or {}
+-    )
++    username, password, _email = _normalize_credentials(json_body(request))
+     if not username or not password:
+         return error('Username and password are required', 400)
+ 
+@@ -54,22 +50,20 @@ def login():
+     if (
+         not user
+         or not user['password_hash']
+-        or not check_password_hash(user['password_hash'], password)
++        or not check_password(password, user['password_hash'])
+     ):
+         return error('Invalid username or password', 401)
+ 
+-    session['user_id'] = user['id']
+-    g.current_user = dict(user)
+-    session.permanent = True
++    request.session['user_id'] = user['id']
++    request.session.modified = True
++    request.current_user = dict(user)
+     return ok(_public_user(user))
+ 
+ 
+-@bp.post('/register')
+-def register():
++@csrf_exempt
++def register(request):
+     """Create a local username/password user and start a session."""
+-    username, password, email = _normalize_credentials(
+-        request.get_json(silent=True) or {}
+-    )
++    username, password, email = _normalize_credentials(json_body(request))
+     if not username or not password:
+         return error('Username and password are required', 400)
+     if len(password) < 8:
+@@ -88,7 +82,7 @@ def register():
+         """INSERT INTO users (
+             username, email, password_hash, auth_provider, auth_subject, created_at, updated_at
+         ) VALUES (?, ?, ?, 'local', NULL, ?, ?)""",
+-        (username, email, generate_password_hash(password), now, now),
++        (username, email, make_password(password), now, now),
+     )
+     conn.commit()
+ 
+@@ -96,15 +90,17 @@ def register():
+         'SELECT * FROM users WHERE id = ?',
+         (cursor.lastrowid,),
+     ).fetchone()
+-    session['user_id'] = user['id']
+-    g.current_user = dict(user)
+-    session.permanent = True
++    request.session['user_id'] = user['id']
++    request.session.modified = True
++    request.current_user = dict(user)
+     return created(_public_user(user))
+ 
+ 
+-@bp.post('/logout')
+-def logout():
++@csrf_exempt
++def logout(request):
+     """Clear the current browser session."""
+-    session.pop('user_id', None)
+-    g.pop('current_user', None)
+-    return ok(_public_user(get_current_user()))
++    request.session.pop('user_id', None)
++    request.session.modified = True
++    if hasattr(request, 'current_user'):
++        delattr(request, 'current_user')
++    return ok(_public_user(get_current_user(request)))
+diff --git a/pypostboy/routes/collections.py b/pypostboy/routes/collections.py
+index 5686cb319f683541b156fd903b945e0410d4fc28..a7f63e4a7ffda94d8b19eaae91e2f1c1271d881c 100644
+--- a/pypostboy/routes/collections.py
++++ b/pypostboy/routes/collections.py
+@@ -1,50 +1,46 @@
+-"""Collection API routes."""
++"""Collection API views."""
+ 
+-from flask import Blueprint, request
++from django.views.decorators.csrf import csrf_exempt
+ 
+ from db import Collections
+ from pypostboy.auth import require_current_user
++from pypostboy.djangoapp.request import json_body
+ from pypostboy.http.responses import created, error, ok
+ 
+-bp = Blueprint('collections', __name__)
+ 
+-
+-def _current_user_id():
+-    return require_current_user()['id']
++def _current_user_id(request):
++    return require_current_user(request)['id']
+ 
+ 
+ def _status_for_error(err):
+     return 404 if 'not found' in str(err).lower() else 400
+ 
+ 
+-@bp.route('/api/collections', methods=['GET'])
+-def get_collections():
++def get_collections(request):
+     """List all collections (tree structure)."""
+     try:
+-        return ok(Collections.get_all(_current_user_id()))
++        return ok(Collections.get_all(_current_user_id(request)))
+     except Exception as err:
+         return error(err, 500)
+ 
+ 
+-@bp.route('/api/collections/reorder', methods=['PUT'])
+-def reorder_collections():
++@csrf_exempt
++def reorder_collections(request):
+     """Reorder collections that share the same parent."""
+     try:
+-        body = request.get_json(silent=True) or {}
++        body = json_body(request)
+         if 'ordered_ids' not in body:
+             return error('ordered_ids required', 400)
+-
+-        result = Collections.reorder(body.get('parent_id'), _current_user_id(), body.get('ordered_ids'))
++        result = Collections.reorder(body.get('parent_id'), _current_user_id(request), body.get('ordered_ids'))
+         return ok(result)
+     except Exception as err:
+         return error(err, _status_for_error(err))
+ 
+ 
+-@bp.route('/api/collections/<int:id>', methods=['GET'])
+-def get_collection(id):
++def get_collection(request, id):
+     """Get single collection with requests."""
+     try:
+-        col = Collections.get_by_id(id, _current_user_id())
++        col = Collections.get_by_id(id, _current_user_id(request))
+         if not col:
+             return error('Collection not found', 404)
+         return ok(col)
+@@ -52,31 +48,31 @@ def get_collection(id):
+         return error(err, 500)
+ 
+ 
+-@bp.route('/api/collections', methods=['POST'])
+-def create_collection():
++@csrf_exempt
++def create_collection(request):
+     """Create a new collection."""
+     try:
+-        col = Collections.create(_current_user_id(), request.get_json(silent=True) or {})
++        col = Collections.create(_current_user_id(request), json_body(request))
+         return created(col)
+     except Exception as err:
+         return error(err, _status_for_error(err))
+ 
+ 
+-@bp.route('/api/collections/<int:id>', methods=['PUT'])
+-def update_collection(id):
++@csrf_exempt
++def update_collection(request, id):
+     """Update a collection."""
+     try:
+-        col = Collections.update(id, _current_user_id(), request.get_json(silent=True) or {})
++        col = Collections.update(id, _current_user_id(request), json_body(request))
+         return ok(col)
+     except Exception as err:
+         return error(err, _status_for_error(err))
+ 
+ 
+-@bp.route('/api/collections/<int:id>', methods=['DELETE'])
+-def delete_collection(id):
++@csrf_exempt
++def delete_collection(request, id):
+     """Delete a collection."""
+     try:
+-        result = Collections.delete(id, _current_user_id())
++        result = Collections.delete(id, _current_user_id(request))
+         if result.get('deleted') == 0:
+             return error('Collection not found', 404)
+         return ok(result)
+@@ -84,11 +80,11 @@ def delete_collection(id):
+         return error(err, _status_for_error(err))
+ 
+ 
+-@bp.route('/api/collections/<int:id>/duplicate', methods=['POST'])
+-def duplicate_collection(id):
++@csrf_exempt
++def duplicate_collection(request, id):
+     """Duplicate a collection."""
+     try:
+-        col = Collections.duplicate(id, _current_user_id())
++        col = Collections.duplicate(id, _current_user_id(request))
+         return ok(col)
+     except Exception as err:
+         return error(err, _status_for_error(err))
+diff --git a/pypostboy/routes/imports.py b/pypostboy/routes/imports.py
+index 79e9d99550401946ef4321364ff716c5639a9685..df6432d4f11b5d0ed97bf9ba0e633cc47393e939 100644
+--- a/pypostboy/routes/imports.py
++++ b/pypostboy/routes/imports.py
+@@ -1,20 +1,19 @@
+-"""Import API routes."""
++"""Import API views."""
+ 
+-from flask import Blueprint, request
++from django.views.decorators.csrf import csrf_exempt
+ 
+ from pypostboy.auth import require_current_user
++from pypostboy.djangoapp.request import json_body
+ from pypostboy.http.responses import error, ok
+ from pypostboy.services.curl_parser import parse_curl_to_request
+ from pypostboy.services.import_service import import_postman_to_db
+ 
+-bp = Blueprint('imports', __name__)
+ 
+-
+-@bp.route('/api/import', methods=['POST'])
+-def import_data():
++@csrf_exempt
++def import_data(request):
+     """Import Postman collection or cURL command."""
+     try:
+-        body = request.get_json(silent=True) or {}
++        body = json_body(request)
+         data = body.get('data')
+         import_type = body.get('type')
+ 
+@@ -22,7 +21,7 @@ def import_data():
+             return error('No data provided', 400)
+ 
+         if import_type == 'postman':
+-            return ok(import_postman_to_db(data, require_current_user()['id']))
++            return ok(import_postman_to_db(data, require_current_user(request)['id']))
+         if import_type == 'curl':
+             return ok(parse_curl_to_request(data))
+         return error('Unknown import type. Use "postman" or "curl".', 400)
+diff --git a/pypostboy/routes/instances.py b/pypostboy/routes/instances.py
+index 4f2b84808004e48ac4582f18f93cbb54cf5b9847..3bb756052b1d99a75ec43e9419ffda4b0bf936ba 100644
+--- a/pypostboy/routes/instances.py
++++ b/pypostboy/routes/instances.py
+@@ -1,27 +1,25 @@
+-"""Request snapshot/instance API routes."""
++"""Request snapshot/instance API views."""
+ 
+-from flask import Blueprint, request
++from django.views.decorators.csrf import csrf_exempt
+ 
+ from db import RequestInstances
+ from pypostboy.auth import require_current_user
++from pypostboy.djangoapp.request import json_body
+ from pypostboy.http.responses import created, error, ok
+ 
+-bp = Blueprint('instances', __name__)
+ 
+-
+-def _current_user_id():
+-    return require_current_user()['id']
++def _current_user_id(request):
++    return require_current_user(request)['id']
+ 
+ 
+ def _status_for_error(err):
+     return 404 if 'not found' in str(err).lower() else 400
+ 
+ 
+-@bp.route('/api/requests/<int:id>/instances', methods=['GET'])
+-def get_request_instances(id):
++def get_request_instances(request, id):
+     """Get saved instances for a request."""
+     try:
+-        instances = RequestInstances.get_by_request(id, _current_user_id())
++        instances = RequestInstances.get_by_request(id, _current_user_id(request))
+         return ok(instances)
+     except ValueError as err:
+         return error(err, 404)
+@@ -29,21 +27,20 @@ def get_request_instances(id):
+         return error(err, 500)
+ 
+ 
+-@bp.route('/api/requests/<int:id>/instances', methods=['POST'])
+-def create_request_instance(id):
++@csrf_exempt
++def create_request_instance(request, id):
+     """Create a saved instance for a request."""
+     try:
+-        instance = RequestInstances.create(id, _current_user_id(), request.get_json(silent=True) or {})
++        instance = RequestInstances.create(id, _current_user_id(request), json_body(request))
+         return created(instance)
+     except Exception as err:
+         return error(err, _status_for_error(err))
+ 
+ 
+-@bp.route('/api/request-instances/<int:instance_id>', methods=['GET'])
+-def get_request_instance(instance_id):
++def get_request_instance(request, instance_id):
+     """Get a saved request instance."""
+     try:
+-        instance = RequestInstances.get_by_id(instance_id, _current_user_id())
++        instance = RequestInstances.get_by_id(instance_id, _current_user_id(request))
+         if not instance:
+             return error('Request instance not found', 404)
+         return ok(instance)
+@@ -51,21 +48,21 @@ def get_request_instance(instance_id):
+         return error(err, 500)
+ 
+ 
+-@bp.route('/api/request-instances/<int:instance_id>', methods=['PUT'])
+-def update_request_instance(instance_id):
++@csrf_exempt
++def update_request_instance(request, instance_id):
+     """Update a saved request instance."""
+     try:
+-        instance = RequestInstances.update(instance_id, _current_user_id(), request.get_json(silent=True) or {})
++        instance = RequestInstances.update(instance_id, _current_user_id(request), json_body(request))
+         return ok(instance)
+     except Exception as err:
+         return error(err, _status_for_error(err))
+ 
+ 
+-@bp.route('/api/request-instances/<int:instance_id>', methods=['DELETE'])
+-def delete_request_instance(instance_id):
++@csrf_exempt
++def delete_request_instance(request, instance_id):
+     """Delete a saved request instance."""
+     try:
+-        result = RequestInstances.delete(instance_id, _current_user_id())
++        result = RequestInstances.delete(instance_id, _current_user_id(request))
+         if result.get('deleted') == 0:
+             return error('Request instance not found', 404)
+         return ok(result)
+diff --git a/pypostboy/routes/proxy.py b/pypostboy/routes/proxy.py
+index eccbb6aa8b9b4a2077048603205551edb4e2d8d2..f613b78ee672b272aed08445c06392b001e97d53 100644
+--- a/pypostboy/routes/proxy.py
++++ b/pypostboy/routes/proxy.py
+@@ -1,17 +1,18 @@
+-"""Proxy API routes."""
++"""Proxy API views."""
+ 
+-from flask import Blueprint, jsonify, request
+-from pypostboy.services.proxy_service import ProxyError, proxy_http_request
++from django.http import JsonResponse
++from django.views.decorators.csrf import csrf_exempt
+ 
+-bp = Blueprint('proxy', __name__)
++from pypostboy.djangoapp.request import json_body
++from pypostboy.services.proxy_service import ProxyError, proxy_http_request
+ 
+ 
+-@bp.route('/api/proxy', methods=['POST'])
+-def proxy_request():
++@csrf_exempt
++def proxy_request(request):
+     """Proxy an HTTP request."""
+     try:
+-        return jsonify(proxy_http_request(request.get_json(silent=True) or {}))
++        return JsonResponse(proxy_http_request(json_body(request)))
+     except ValueError as err:
+-        return jsonify({'error': str(err)}), 400
++        return JsonResponse({'error': str(err)}, status=400)
+     except ProxyError as err:
+-        return jsonify(err.to_payload()), 500
++        return JsonResponse(err.to_payload(), status=500)
+diff --git a/pypostboy/routes/requests.py b/pypostboy/routes/requests.py
+index 8b8edfa8c36af97753455360c203a2d1c840109d..2ff1a446b0694b9077fd2007e2a8a26f75f76dad 100644
+--- a/pypostboy/routes/requests.py
++++ b/pypostboy/routes/requests.py
+@@ -1,44 +1,41 @@
+-"""Request API routes."""
++"""Request API views."""
+ 
+-from flask import Blueprint, request
++from django.views.decorators.csrf import csrf_exempt
+ 
+ from db import Requests
+ from pypostboy.auth import require_current_user
++from pypostboy.djangoapp.request import json_body
+ from pypostboy.http.responses import created, error, ok
+ 
+-bp = Blueprint('requests', __name__)
+ 
+-
+-def _current_user_id():
+-    return require_current_user()['id']
++def _current_user_id(request):
++    return require_current_user(request)['id']
+ 
+ 
+ def _status_for_error(err):
+     return 404 if 'not found' in str(err).lower() else 400
+ 
+ 
+-@bp.route('/api/requests/reorder', methods=['PUT'])
+-def reorder_requests():
++@csrf_exempt
++def reorder_requests(request):
+     """Reorder requests within a collection."""
+     try:
+-        body = request.get_json(silent=True) or {}
++        body = json_body(request)
+         collection_id = body.get('collection_id')
+         if not collection_id:
+             return error('collection_id required', 400)
+         if 'ordered_ids' not in body:
+             return error('ordered_ids required', 400)
+-
+-        result = Requests.reorder(collection_id, _current_user_id(), body.get('ordered_ids'))
++        result = Requests.reorder(collection_id, _current_user_id(request), body.get('ordered_ids'))
+         return ok(result)
+     except Exception as err:
+         return error(err, _status_for_error(err))
+ 
+ 
+-@bp.route('/api/requests/<int:id>', methods=['GET'])
+-def get_request(id):
++def get_request(request, id):
+     """Get single request."""
+     try:
+-        req = Requests.get_by_id(id, _current_user_id())
++        req = Requests.get_by_id(id, _current_user_id(request))
+         if not req:
+             return error('Request not found', 404)
+         return ok(req)
+@@ -46,11 +43,10 @@ def get_request(id):
+         return error(err, 500)
+ 
+ 
+-@bp.route('/api/collections/<int:id>/requests', methods=['GET'])
+-def get_collection_requests(id):
++def get_collection_requests(request, id):
+     """Get all requests in a collection."""
+     try:
+-        reqs = Requests.get_by_collection(id, _current_user_id())
++        reqs = Requests.get_by_collection(id, _current_user_id(request))
+         return ok(reqs)
+     except ValueError as err:
+         return error(err, 404)
+@@ -58,31 +54,31 @@ def get_collection_requests(id):
+         return error(err, 500)
+ 
+ 
+-@bp.route('/api/requests', methods=['POST'])
+-def create_request():
++@csrf_exempt
++def create_request(request):
+     """Create a new request."""
+     try:
+-        req = Requests.create(_current_user_id(), request.get_json(silent=True) or {})
++        req = Requests.create(_current_user_id(request), json_body(request))
+         return created(req)
+     except Exception as err:
+         return error(err, _status_for_error(err))
+ 
+ 
+-@bp.route('/api/requests/<int:id>', methods=['PUT'])
+-def update_request(id):
++@csrf_exempt
++def update_request(request, id):
+     """Update a request."""
+     try:
+-        req = Requests.update(id, _current_user_id(), request.get_json(silent=True) or {})
++        req = Requests.update(id, _current_user_id(request), json_body(request))
+         return ok(req)
+     except Exception as err:
+         return error(err, _status_for_error(err))
+ 
+ 
+-@bp.route('/api/requests/<int:id>', methods=['DELETE'])
+-def delete_request(id):
++@csrf_exempt
++def delete_request(request, id):
+     """Delete a request."""
+     try:
+-        result = Requests.delete(id, _current_user_id())
++        result = Requests.delete(id, _current_user_id(request))
+         if result.get('deleted') == 0:
+             return error('Request not found', 404)
+         return ok(result)
+@@ -90,25 +86,25 @@ def delete_request(id):
+         return error(err, _status_for_error(err))
+ 
+ 
+-@bp.route('/api/requests/<int:id>/duplicate', methods=['POST'])
+-def duplicate_request(id):
++@csrf_exempt
++def duplicate_request(request, id):
+     """Duplicate a request."""
+     try:
+-        req = Requests.duplicate(id, _current_user_id())
++        req = Requests.duplicate(id, _current_user_id(request))
+         return ok(req)
+     except Exception as err:
+         return error(err, _status_for_error(err))
+ 
+ 
+-@bp.route('/api/requests/<int:id>/move', methods=['PUT'])
+-def move_request(id):
++@csrf_exempt
++def move_request(request, id):
+     """Move request to another collection."""
+     try:
+-        body = request.get_json(silent=True) or {}
++        body = json_body(request)
+         collection_id = body.get('collection_id')
+         if not collection_id:
+             return error('collection_id required', 400)
+-        req = Requests.move(id, _current_user_id(), collection_id)
++        req = Requests.move(id, _current_user_id(request), collection_id)
+         return ok(req)
+     except Exception as err:
+         return error(err, _status_for_error(err))
+diff --git a/pypostboy/routes/static.py b/pypostboy/routes/static.py
+index 1d9addedd1d0bd9bd29ca7b77c94fbe88293e6bf..89ebe260345f048d194934adebf9227c734afadf 100644
+--- a/pypostboy/routes/static.py
++++ b/pypostboy/routes/static.py
+@@ -1,39 +1,44 @@
+-"""Static file and SPA fallback routes."""
++"""Static file and SPA fallback views."""
+ 
+ import base64
++import mimetypes
+ import os
+ 
+-from flask import Blueprint, abort, current_app, send_from_directory
++from django.conf import settings
++from django.http import FileResponse, Http404, HttpResponse
+ 
+-bp = Blueprint('static_routes', __name__)
+ 
+-
+-@bp.route('/favicon.ico')
+-def favicon():
++def favicon(request):
+     """Serve a minimal transparent PNG favicon."""
+     favicon_data = base64.b64decode(
+         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+     )
+-    return current_app.response_class(
+-        response=favicon_data,
+-        mimetype='image/png',
+-        headers={'Cache-Control': 'public, max-age=604800'}
++    return HttpResponse(
++        favicon_data,
++        content_type='image/png',
++        headers={'Cache-Control': 'public, max-age=604800'},
+     )
+ 
+ 
+-@bp.route('/')
+-def index():
++def _serve_file(path):
++    content_type, _encoding = mimetypes.guess_type(path)
++    return FileResponse(open(path, 'rb'), content_type=content_type or 'application/octet-stream')
++
++
++def index(request):
+     """Serve the main index.html."""
+-    return send_from_directory(current_app.config['PUBLIC_DIR'], 'index.html')
++    return _serve_file(os.path.join(settings.PUBLIC_DIR, 'index.html'))
+ 
+ 
+-@bp.route('/<path:path>')
+-def serve_static(path):
++def serve_static(request, path):
+     """Serve static files and fallback to index.html for SPA."""
+-    public_dir = current_app.config['PUBLIC_DIR']
+-    full_path = os.path.join(public_dir, path)
++    public_dir = settings.PUBLIC_DIR
++    safe_path = os.path.normpath(path).lstrip(os.sep)
++    full_path = os.path.abspath(os.path.join(public_dir, safe_path))
++    if not full_path.startswith(os.path.abspath(public_dir) + os.sep):
++        raise Http404()
+     if os.path.isfile(full_path):
+-        return send_from_directory(public_dir, path)
++        return _serve_file(full_path)
+     if os.path.splitext(path)[1]:
+-        abort(404)
+-    return send_from_directory(public_dir, 'index.html')
++        raise Http404()
++    return _serve_file(os.path.join(public_dir, 'index.html'))
+diff --git a/pypostboy/services/proxy_service.py b/pypostboy/services/proxy_service.py
+index d47726a86596dc7b2f28c0f55ee7200d000a7fc4..29cae88a54cc0d6526c26d89aa15a3fe4df2a4cf 100644
+--- a/pypostboy/services/proxy_service.py
++++ b/pypostboy/services/proxy_service.py
+@@ -4,7 +4,7 @@ import json
+ from datetime import datetime, timezone
+ 
+ import requests as http_requests
+-from flask import current_app, has_app_context
++from django.conf import settings
+ 
+ from pypostboy.config import BaseConfig
+ 
+@@ -65,9 +65,7 @@ class ProxyConnectionError(ProxyError):
+ 
+ def get_proxy_timeout():
+     """Return the configured outbound proxy timeout."""
+-    if has_app_context():
+-        return current_app.config.get('PROXY_TIMEOUT', BaseConfig.PROXY_TIMEOUT)
+-    return BaseConfig.PROXY_TIMEOUT
++    return getattr(settings, 'PROXY_TIMEOUT', BaseConfig.PROXY_TIMEOUT)
+ 
+ 
+ def proxy_http_request(body):
+diff --git a/pypostboy/settings.py b/pypostboy/settings.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..08b7323516827d117717078d4a850cc33b733d7c
+--- /dev/null
++++ b/pypostboy/settings.py
+@@ -0,0 +1,44 @@
++"""Django settings for PostBoy.
++
++The project keeps PostBoy's existing lightweight SQLite repository layer while
++using Django for HTTP routing, middleware, sessions, static serving, and WSGI
++integration.
++"""
++
++import os
++
++from pypostboy.config import BaseConfig, DEFAULT_STATIC_FOLDER
++
++BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
++SECRET_KEY = BaseConfig.SECRET_KEY
++DEBUG = BaseConfig.DEBUG
++ALLOWED_HOSTS = ['*']
++ROOT_URLCONF = 'pypostboy.urls'
++WSGI_APPLICATION = 'pypostboy.wsgi.application'
++DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
++USE_TZ = True
++TIME_ZONE = 'UTC'
++INSTALLED_APPS = [
++    'django.contrib.contenttypes',
++    'django.contrib.sessions',
++]
++MIDDLEWARE = [
++    'django.middleware.security.SecurityMiddleware',
++    'django.contrib.sessions.middleware.SessionMiddleware',
++    'pypostboy.djangoapp.middleware.PostBoyMiddleware',
++]
++# PostBoy owns its application schema through pypostboy.db migrations. Django's
++# database setting is still required for framework internals, but sessions use
++# signed cookies so no Django-managed tables are needed at runtime.
++DATABASES = {
++    'default': {
++        'ENGINE': 'django.db.backends.sqlite3',
++        'NAME': os.environ.get('POSTBOY_DJANGO_DB_PATH', ':memory:'),
++    }
++}
++SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
++SESSION_COOKIE_SAMESITE = 'Lax'
++CSRF_COOKIE_SAMESITE = 'Lax'
++PUBLIC_DIR = os.path.abspath(os.environ.get('POSTBOY_STATIC_FOLDER', DEFAULT_STATIC_FOLDER))
++PROXY_TIMEOUT = BaseConfig.PROXY_TIMEOUT
++DATA_UPLOAD_MAX_MEMORY_SIZE = BaseConfig.MAX_CONTENT_LENGTH
+diff --git a/pypostboy/urls.py b/pypostboy/urls.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..86e511d1a1876714bb11911c1756f8d60de5cfba
+--- /dev/null
++++ b/pypostboy/urls.py
+@@ -0,0 +1,59 @@
++"""URL configuration for the PostBoy Django application."""
++
++from django.http import HttpResponseNotAllowed
++from django.urls import path
++
++from pypostboy.routes import auth, collections, imports, instances, proxy, requests, static
++
++
++def dispatch(method_map):
++    """Return a small function-based dispatcher for method-specific views."""
++    allowed = sorted(method_map)
++
++    def view(request, *args, **kwargs):
++        handler = method_map.get(request.method)
++        if handler is None:
++            return HttpResponseNotAllowed(allowed)
++        return handler(request, *args, **kwargs)
++
++    return view
++
++
++urlpatterns = [
++    path('api/auth/me', auth.current_user),
++    path('api/auth/login', auth.login),
++    path('api/auth/register', auth.register),
++    path('api/auth/logout', auth.logout),
++    path('api/collections', dispatch({'GET': collections.get_collections, 'POST': collections.create_collection})),
++    path('api/collections/reorder', collections.reorder_collections),
++    path('api/collections/<int:id>', dispatch({
++        'GET': collections.get_collection,
++        'PUT': collections.update_collection,
++        'DELETE': collections.delete_collection,
++    })),
++    path('api/collections/<int:id>/duplicate', collections.duplicate_collection),
++    path('api/collections/<int:id>/requests', requests.get_collection_requests),
++    path('api/requests', dispatch({'POST': requests.create_request})),
++    path('api/requests/reorder', requests.reorder_requests),
++    path('api/requests/<int:id>', dispatch({
++        'GET': requests.get_request,
++        'PUT': requests.update_request,
++        'DELETE': requests.delete_request,
++    })),
++    path('api/requests/<int:id>/duplicate', requests.duplicate_request),
++    path('api/requests/<int:id>/move', requests.move_request),
++    path('api/requests/<int:id>/instances', dispatch({
++        'GET': instances.get_request_instances,
++        'POST': instances.create_request_instance,
++    })),
++    path('api/request-instances/<int:instance_id>', dispatch({
++        'GET': instances.get_request_instance,
++        'PUT': instances.update_request_instance,
++        'DELETE': instances.delete_request_instance,
++    })),
++    path('api/import', imports.import_data),
++    path('api/proxy', proxy.proxy_request),
++    path('favicon.ico', static.favicon),
++    path('', static.index),
++    path('<path:path>', static.serve_static),
++]
+diff --git a/pypostboy/wsgi.py b/pypostboy/wsgi.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..32cf6c53a5c8187e4cea0df33fe7de81a1f9630c
+--- /dev/null
++++ b/pypostboy/wsgi.py
+@@ -0,0 +1,9 @@
++"""WSGI entrypoint for the PostBoy Django application."""
++
++import os
++
++from django.core.wsgi import get_wsgi_application
++
++os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pypostboy.settings')
++
++application = get_wsgi_application()
+diff --git a/requirements.txt b/requirements.txt
+index 1ca3243920d7bc91d05a01425e9385ac92fdb847..6bdb57733b83f5c7d37fc29f846d30d2c537b75a 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -1,4 +1,3 @@
+-Flask==3.0.0
+-flask-cors==4.0.0
++Django==5.0.6
+ requests==2.31.0
+ pytest==8.2.2

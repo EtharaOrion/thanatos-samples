@@ -1,0 +1,200 @@
+ M main/tests.py
+ M news/tests.py
+ M places/tests.py
+ M pyproject.toml
+?? conftest.py
+# task_tracker: Update checklist progress
+Task list has been updated with 8 item(s).
+$ cd /workspace/dotmanca && grep -rn "unittest\|TestCase\|self\.assert" --include="*.py" . | grep -v "/migrations/" ; echo "exit=$?"
+exit=1
+$ cd /workspace && python repro_migration_check.py 2>&1 | tail -25 && python repro_mutation_check.py 2>&1 | tail -13
+$ /usr/local/bin/python -m pytest -q
+.................................                                        [100%]
+33 passed in 0.36s
+
+== django test runner (legacy path) ==
+
+$ /usr/local/bin/python manage.py test --settings=config.settings.test
+Found 0 test(s).
+System check identified no issues (0 silenced).
+
+STDERR:
+----------------------------------------------------------------------
+Ran 0 tests in 0.000s
+
+OK
+
+== unittest residue check ==
+  none found
+== assertion count == 28
+
+SUMMARY
+  plain pytest rc          : 0
+  pytest with env rc       : 0
+  django test runner rc    : 0
+  unittest residue         : 0
+baseline full run
+   33 passed in 0.37s rc= 0
+DETECTED: mutating dotmanca/users/models.py -> dotmanca/users/tests/test_models.py::test_get_absolute_url
+DETECTED: mutating dotmanca/users/views.py -> dotmanca/users/tests/test_views.py::test_user_update_view_get_object
+DETECTED: mutating characters/models.py -> characters/tests.py::test_character_slug_appears_in_url
+DETECTED: mutating news/models.py -> news/tests.py::test_news_article_date_appears_in_url
+DETECTED: mutating dotmanca/users/urls.py -> dotmanca/users/tests/test_urls.py
+DETECTED: mutating gallery/models.py -> gallery/tests.py
+DETECTED: mutating places/models.py -> places/tests.py
+DETECTED: mutating comics/models.py -> comics/tests.py::test_issue_arc_slug_appears_in_url
+post-restore full run
+   33 passed in 0.37s rc= 0
+$ cd /workspace/dotmanca && git add -A && git status --porcelain && rm -f /workspace/repro_migration_check.py /workspace/repro_mutation_check.py && ls /workspace
+M  characters/tests.py
+M  comics/tests.py
+A  conftest.py
+M  dotmanca/users/tests/test_admin.py
+M  dotmanca/users/tests/test_models.py
+M  dotmanca/users/tests/test_urls.py
+M  dotmanca/users/tests/test_views.py
+M  gallery/tests.py
+M  main/tests.py
+M  news/tests.py
+M  places/tests.py
+M  pyproject.toml
+bash_events  conversations  dotmanca  project
+$ cd /workspace/dotmanca && python -m pytest -q 2>&1 | tail -3 && git status --porcelain --ignored | grep -v "^!!" 
+.................................                                        [100%]
+33 passed in 0.37s
+M  characters/tests.py
+M  comics/tests.py
+A  conftest.py
+M  dotmanca/users/tests/test_admin.py
+M  dotmanca/users/tests/test_models.py
+M  dotmanca/users/tests/test_urls.py
+M  dotmanca/users/tests/test_views.py
+M  gallery/tests.py
+M  main/tests.py
+M  news/tests.py
+M  places/tests.py
+M  pyproject.toml
+$ cd /workspace/dotmanca/dotmanca/users && python -m pytest tests/test_models.py -q 2>&1 | tail -5
+..                                                                       [100%]
+2 passed in 0.33s
+$ python -c "import pytest_django,os;print(os.path.dirname(pytest_django.__file__))" && grep -n "DJANGO_SETTINGS_MODULE\|ds =\|getini" $(python -c "import pytest_django,os;print(os.path.dirname(pytest_django.__file__))")/plugin.py | head -30
+/usr/local/lib/python3.11/site-packages/pytest_django
+62:SETTINGS_MODULE_ENV = "DJANGO_SETTINGS_MODULE"
+95:        help="Set DJANGO_SETTINGS_MODULE.",
+183:    # An invalid DJANGO_SETTINGS_MODULE raises ImportError on Django < 6.2, but
+345:        early_config.getini("django_find_project"), "django_find_project"
+356:        or early_config.getini(INVALID_TEMPLATE_VARS_ENV)
+368:        cfgval = early_config.getini(envname)
+406:    # allow users to not set DJANGO_SETTINGS_MODULE/`--ds` and instead
+544:        debug_ini = request.config.getini("django_debug_mode")
+$ sed -n 355,400p /usr/local/lib/python3.11/site-packages/pytest_django/plugin.py
+or _get_boolean_value(os.environ.get(INVALID_TEMPLATE_VARS_ENV), INVALID_TEMPLATE_VARS_ENV)
+        or early_config.getini(INVALID_TEMPLATE_VARS_ENV)
+    ):
+        os.environ[INVALID_TEMPLATE_VARS_ENV] = "true"
+
+    def _get_option_with_source(
+        option: str | None,
+        envname: str,
+    ) -> tuple[str, str] | tuple[None, None]:
+        if option:
+            return option, "option"
+        if envname in os.environ:
+            return os.environ[envname], "env"
+        cfgval = early_config.getini(envname)
+        if cfgval:
+            return cfgval, "ini"
+        return None, None
+
+    ds, ds_source = _get_option_with_source(options.ds, SETTINGS_MODULE_ENV)
+    dc, dc_source = _get_option_with_source(options.dc, CONFIGURATION_ENV)
+
+    if ds:
+        report_header.append(f"settings: {ds} (from {ds_source})")
+        os.environ[SETTINGS_MODULE_ENV] = ds
+
+        if dc:
+            report_header.append(f"configuration: {dc} (from {dc_source})")
+            os.environ[CONFIGURATION_ENV] = dc
+
+            # Install the django-configurations importer
+            import configurations.importer
+
+            configurations.importer.install()
+
+        # Forcefully load Django settings, throws ImportError or
+        # ImproperlyConfigured if settings cannot be loaded.
+        from django.conf import settings as dj_settings
+
+        with _handle_import_error(_django_project_scan_outcome):
+            dj_settings.DATABASES  # noqa: B018
+
+    # Populates the app registry, which fails on a broken INSTALLED_APPS.
+    _setup_django(early_config)
+
+
+@pytest.hookimpl(trylast=True)
+$ cd /workspace/dotmanca && python -m pytest 2>&1 | tail -18 && git --no-pager diff --cached --stat
+django: version: 4.2.30, settings: config.settings.test (from ini)
+rootdir: /workspace/dotmanca
+configfile: pyproject.toml
+plugins: django-4.14.0, env-1.7.0
+collected 33 items
+
+dotmanca/users/tests/test_admin.py ..                                    [  6%]
+dotmanca/users/tests/test_models.py ..                                   [ 12%]
+dotmanca/users/tests/test_views.py ...                                   [ 21%]
+characters/tests.py ..                                                   [ 27%]
+comics/tests.py ..                                                       [ 33%]
+dotmanca/users/tests/test_urls.py ........                               [ 57%]
+gallery/tests.py ...                                                     [ 66%]
+main/tests.py ........                                                   [ 90%]
+news/tests.py ..                                                         [ 96%]
+places/tests.py .                                                        [100%]
+
+============================== 33 passed in 0.38s ==============================
+ characters/tests.py                 | 40 +++++++++++++++++++---------------------
+ comics/tests.py                     | 40 +++++++++++++++++++---------------------
+ conftest.py                         | 10 ++++++++++
+ dotmanca/users/tests/test_admin.py  | 81 ++++++++++++++++++++++++++++++++++++++++-----------------------------------------
+ dotmanca/users/tests/test_models.py | 18 ++++--------------
+ dotmanca/users/tests/test_urls.py   | 65 +++++++++++++++++++++++++++++++----------------------------------
+ dotmanca/users/tests/test_views.py  | 81 +++++++++++++++++++++++++++++++++++----------------------------------------------
+ gallery/tests.py                    | 53 +++++++++++++++++++++++++----------------------------
+ main/tests.py                       | 56 ++++++++++++++++++++++++++++++--------------------------
+ news/tests.py                       | 30 ++++++++++++++----------------
+ places/tests.py                     | 15 ++++++---------
+ pyproject.toml                      |  1 +
+ 12 files changed, 234 insertions(+), 256 deletions(-)
+# finish: Report completed unittest-to-pytest migration
+The unittest → pytest migration is complete and verified.
+
+**Checklist tally: 8 DONE, 0 BLOCKED**
+
+1. Migrate all application test modules to pytest — DONE
+2. Preserve behavioral coverage / assertion strength — DONE
+3. Preserve application behavior — DONE
+4. Existing tests keep passing — DONE
+5. Update dependency/toolchain/build configuration as required — DONE
+6. Keep unrelated source, CI, deployment config, docs unchanged — DONE
+7. No skipped/disabled tests — DONE
+8. No temp reproduction files / no grader-test edits in the patch — DONE
+
+**What changed (12 files, staged in git)**
+- `characters/tests.py`, `comics/tests.py`, `gallery/tests.py`, `news/tests.py`, `places/tests.py`: `django.test.TestCase` classes → module-level pytest functions; `self.assertTrue(...)` → plain `assert`.
+- `dotmanca/users/tests/test_admin.py`, `test_models.py`, `test_urls.py`, `test_views.py`: `TestCase` + `setUp` → pytest fixtures (`taken_username_user`, `user_update_view`) and pytest-django built-ins (`db`, `rf`); all `self.assertEqual/assertTrue/assertFalse` → plain `assert`. URL tests no longer need the DB because `reverse`/`resolve` don't touch it; assertions are unchanged.
+- `conftest.py` (new, repo root): shared DB-backed `user` fixture (`testuser`) replacing the duplicated `setUp` user creation, available project-wide.
+- `main/tests.py`: replaced `unittest.mock.patch` + `contextlib.contextmanager` helper with a pytest `monkeypatch`-based `mocked_now` fixture (`monkeypatch.setattr(dt, "datetime", MockedDatetime)` is equivalent to `patch("datetime.datetime", ...)`). The pre-existing bare comparison statements were intentionally left as-is: the views read `datetime.date.today()` while these tests patch `datetime.datetime`, so converting them to `assert` would introduce new failures — assertion strength was preserved, never weakened.
+- `pyproject.toml`: `[tool.pytest.ini_options]` now sets `DJANGO_SETTINGS_MODULE = "config.settings.test"`, so a bare `pytest` invocation works (previously only tox's `setenv` made it work). Verified against pytest-django's precedence (`--ds` > env var > ini), so this can never override an explicitly supplied settings module.
+- No poetry/lockfile change was required: `pytest`, `pytest-django`, `pytest-env`, `coverage` and `django-coverage-plugin` are already declared in the tox `test`/`coverage` environments, and the README already documents `tox -e test` as the pytest entry point. Adding them to `[tool.poetry.dev-dependencies]` would have invalidated `poetry.lock`'s content hash used by `poetry export` in the Dockerfile.
+- Untouched: `.github/` workflows, Dockerfile/docker-compose/entrypoint, README/docs, settings modules, and all application code.
+
+**Verification commands and results**
+- Baseline: `DJANGO_SETTINGS_MODULE=config.settings.test pytest -q` → 33 passed; bare `pytest` → 10 collection errors (ImproperlyConfigured); `manage.py test` → 25 tests.
+- After: `python -m pytest` → **33 passed** — same 33 cases one-for-one — verified bare, with the env var, with `--collect-only`, from `/workspace` (external cwd), from a subdirectory (`dotmanca/users`), per-file, per-single-test, and under `coverage run -m pytest`.
+- Coverage comparison (`coverage report`, before vs after): application coverage identical — 41 missed statements in the same modules, 93% total; only test-module statement counts differ.
+- Mutation harness (temporary, outside the repo, now deleted): 8 deliberate source mutations in `dotmanca/users/{models,views,urls}.py`, `characters/models.py`, `news/models.py`, `gallery/models.py`, `places/models.py`, `comics/models.py` were **all detected** by the migrated suite; sources restored and the full suite re-ran green (33 passed).
+- `grep -rn "unittest|TestCase|self.assert" --include=*.py` (excluding migrations) → no matches.
+- Working tree contains no leftover artifacts; both reproduction scripts lived in `/workspace` (outside the repo) and were deleted.
+
+**Limitations**: `tox`, `black`, `isort` and `flake8` are not installed in this environment, so the CI lint/format jobs could not be executed locally; all touched lines were manually kept within black's 88-column limit and isort's black-profile import grouping. `manage.py test` now discovers 0 tests, which is the expected consequence of function-based pytest tests — CI and the README already run the suite through pytest/tox.

@@ -1,0 +1,200 @@
+-        self.assertTrue(gallery_slug in result)
++    assert gallery_slug in result
+diff --git a/news/tests.py b/news/tests.py
+index c5993aa..f0ab99a 100644
+--- a/news/tests.py
++++ b/news/tests.py
+@@ -1,26 +1,24 @@
+ import datetime
+
+-from django.test import TestCase
+-
+ from .models import NewsArticle
+
+
+-class TestNewsArticleGetAbsoluteUrl(TestCase):
+-    def test_date_appears_in_url(self):
+-        sut = NewsArticle()
+-        sut.published_date = datetime.date(2018, 1, 6)
+-        sut.slug = "dont-care"
++def test_news_article_get_absolute_url_date_appears_in_url():
++    sut = NewsArticle()
++    sut.published_date = datetime.date(2018, 1, 6)
++    sut.slug = "dont-care"
++
++    result = sut.get_absolute_url()
+
+-        result = sut.get_absolute_url()
++    assert "2018/01/06" in result
+
+-        self.assertTrue("2018/01/06" in result)
+
+-    def test_slug_appears_in_url(self):
+-        slug_value = "my-slug-value"
+-        sut = NewsArticle()
+-        sut.published_date = datetime.date.today()
+-        sut.slug = slug_value
++def test_news_article_get_absolute_url_slug_appears_in_url():
++    slug_value = "my-slug-value"
++    sut = NewsArticle()
++    sut.published_date = datetime.date.today()
++    sut.slug = slug_value
+
+-        result = sut.get_absolute_url()
++    result = sut.get_absolute_url()
+
+-        self.assertTrue(slug_value in result)
++    assert slug_value in result
+diff --git a/places/tests.py b/places/tests.py
+index aae01f1..8c3e335 100644
+--- a/places/tests.py
++++ b/places/tests.py
+@@ -1,14 +1,11 @@
+-from django.test import TestCase
+-
+ from .models import Place
+
+
+-class PlaceGetAbsoluteUrl(TestCase):
+-    def test_slug_appears_in_url(self):
+-        slug_value = "slug_value"
+-        sut = Place()
+-        sut.slug = slug_value
++def test_place_get_absolute_url_slug_appears_in_url():
++    slug_value = "slug_value"
++    sut = Place()
++    sut.slug = slug_value
+
+-        result = sut.get_absolute_url()
++    result = sut.get_absolute_url()
+
+-        self.assertTrue(slug_value in result)
++    assert slug_value in result
+diff --git a/pyproject.toml b/pyproject.toml
+index 23c38c4..b591bb2 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -25,6 +25,7 @@ django-storages = "^1.13.1"
+ django-debug-toolbar = ">=2.1"
+
+ [tool.pytest.ini_options]
++DJANGO_SETTINGS_MODULE = "config.settings.test"
+ python_files = ["tests.py", "test_*.py", "*_tests.py"]
+
+ [tool.coverage.run]
+=== NEW FILE conftest.py ===
+import pytest
+
+from ..models import User
+
+
+@pytest.fixture
+def user(db) -> User:
+    return User.objects.create_user(
+        username="testuser", email=None, password="notalamodespassword"
+    )
+$ cd /workspace/dotmanca && python -m pytest -q --import-mode=importlib 2>&1 | tail -4; echo "--- rootdir elsewhere ---"; cd / && python -m pytest -q /workspace/dotmanca 2>&1 | tail -4
+.................................                                        [100%]
+33 passed in 0.45s
+--- rootdir elsewhere ---
+.................................                                        [100%]
+33 passed in 0.43s
+$ cd /workspace/dotmanca && python -m pytest -q dotmanca/users 2>&1 | tail -2 && python -m pytest -q --ds=config.settings.test 2>&1 | tail -2 && python -m pytest -q 2>&1 | tail -2 && python -m pytest -q 2>&1 | tail -2 && git status --porcelain
+...............                                                          [100%]
+15 passed in 0.34s
+.................................                                        [100%]
+33 passed in 0.39s
+.................................                                        [100%]
+33 passed in 0.38s
+.................................                                        [100%]
+33 passed in 0.39s
+ M characters/tests.py
+ M comics/tests.py
+ M dotmanca/users/tests/test_admin.py
+ M dotmanca/users/tests/test_models.py
+ M dotmanca/users/tests/test_urls.py
+ M dotmanca/users/tests/test_views.py
+ M gallery/tests.py
+ M news/tests.py
+ M places/tests.py
+ M pyproject.toml
+?? dotmanca/users/tests/conftest.py
+$ cd /tmp && python check_migration.py 2>&1 | grep -E "leftovers|assert statements|exit code|RESULT" ; rm -f /tmp/places_models.bak /tmp/users_models.bak /tmp/characters_models.bak; rm -rf /tmp/dltest; ls /workspace/dotmanca/.pytest_cache >/dev/null 2>&1 && echo "pytest_cache present (gitignored?)"; grep -n "pytest_cache\|.coverage" /workspace/dotmanca/.gitignore | head
+unittest leftovers: none
+bare `pytest` exit code: 0
+pytest with DJANGO_SETTINGS_MODULE exit code: 0
+RESULT: PASS
+pytest_cache present (gitignored?)
+35:# Unit test / coverage reports
+36:.coverage
+40:.pytest_cache/
+Task list has been updated with 7 item(s).
+$ cd /workspace/dotmanca && git --no-pager diff 131b61619a4bd17a95b4b2d21354875f7183c599 --stat && echo "--- untracked ---" && git status --porcelain --untracked-files=all | grep '??'
+characters/tests.py                 | 40 +++++++++++++++++++---------------------
+ comics/tests.py                     | 40 +++++++++++++++++++---------------------
+ dotmanca/users/tests/test_admin.py  | 67 ++++++++++++++++++++++++++++---------------------------------------
+ dotmanca/users/tests/test_models.py | 18 ++++--------------
+ dotmanca/users/tests/test_urls.py   | 66 ++++++++++++++++++++++++++++++++----------------------------------
+ dotmanca/users/tests/test_views.py  | 83 +++++++++++++++++++++++++++++++++++++----------------------------------------------
+ gallery/tests.py                    | 53 +++++++++++++++++++++++++----------------------------
+ news/tests.py                       | 30 ++++++++++++++----------------
+ places/tests.py                     | 15 ++++++---------
+ pyproject.toml                      |  1 +
+ 10 files changed, 185 insertions(+), 228 deletions(-)
+--- untracked ---
+?? dotmanca/users/tests/conftest.py
+$ cd /workspace/dotmanca && python -m pytest -q 2>&1 | tail -3 && rm -rf .pytest_cache && git status --porcelain --untracked-files=all
+.................................                                        [100%]
+33 passed in 0.39s
+ M characters/tests.py
+ M comics/tests.py
+ M dotmanca/users/tests/test_admin.py
+ M dotmanca/users/tests/test_models.py
+ M dotmanca/users/tests/test_urls.py
+ M dotmanca/users/tests/test_views.py
+ M gallery/tests.py
+ M news/tests.py
+ M places/tests.py
+ M pyproject.toml
+?? dotmanca/users/tests/conftest.py
+$ rm -f /tmp/check_migration.py; ls /tmp | head
+browser-use-downloads-a9c57340
+egress-filter.log
+oh_editor_history_51_10s2c
+tmux-10001
+# finish: Completed unittest-to-pytest migration and reported results
+## Migration complete: unittest → pytest (evanepio/dotmanca)
+
+**Checklist tally: 7 DONE, 0 BLOCKED**
+
+| # | Requirement | Status |
+|---|---|---|
+| 1 | Convert unittest/`django.test.TestCase` suite to pytest | DONE |
+| 2 | Preserve behavioral coverage / assertion strength | DONE |
+| 3 | Preserve application behavior | DONE |
+| 4 | Existing tests keep passing | DONE |
+| 5 | Dependency / toolchain / build-config updates | DONE |
+| 6 | Unrelated source, CI, deployment config, docs unchanged | DONE |
+| 7 | No grader-owned test/eval-infra edits, no temp repro files in patch | DONE |
+
+### What changed
+- **Test modules converted to pytest style** — `characters/tests.py`, `comics/tests.py`, `gallery/tests.py`, `news/tests.py`, `places/tests.py`, and `dotmanca/users/tests/{test_admin,test_models,test_urls,test_views}.py`:
+  - `django.test.TestCase` subclasses → module-level test functions (the style already used by the repo's `main/tests.py`); class names folded into descriptive function names so no coverage is lost.
+  - `self.assertTrue/assertFalse/assertEqual(...)` → plain `assert` statements with identical semantics.
+  - `setUp()` → pytest fixtures; DB-touching tests now use pytest-django's `db` fixture (directly or transitively via the `user` fixture).
+  - `RequestFactory` boilerplate → pytest-django's `rf` fixture; `BaseUserTestCase` inheritance → `user_request` / `user_update_view` fixtures.
+  - URL tests dropped the unused user creation (they only exercise `reverse`/`resolve`), so they no longer require the database.
+- **New `dotmanca/users/tests/conftest.py`** — shared `user` fixture (`testuser`) replacing the duplicated `setUp` user creation across four modules.
+- **`pyproject.toml`** — added `DJANGO_SETTINGS_MODULE = "config.settings.test"` under `[tool.pytest.ini_options]` so a bare `pytest` invocation configures Django (previously only tox's `setenv` provided it).
+
+### Verification commands & results
+- `pytest -q` → **33 passed** (baseline was 33 passed only when `DJANGO_SETTINGS_MODULE` was exported; bare `pytest` previously errored with 10 collection errors).
+- `pytest --collect-only` → 33 node IDs, a 1:1 mapping with every baseline test.
+- Static check of the suite: **0** unittest leftovers (baseline had 31: `TestCase` imports/subclasses, `self.assertX`, `setUp`) and **28** plain `assert` statements (baseline 0).
+- Robustness/edge cases, all green: per-file runs (2/2/3/2/1/8/2/2/8/3), `pytest dotmanca/users` (15 passed), `DJANGO_SETTINGS_MODULE=config.settings.test pytest`, `pytest --ds=config.settings.test`, `pytest --import-mode=importlib`, invocation from a different working directory, two consecutive full runs (DB isolation), and `coverage run -m pytest` + `coverage report` (93% total, `django_coverage_plugin` active) which is what `tox -e coverage` runs.
+- Assertion-strength (mutation) check: temporarily broke `Place.get_absolute_url` and `User.__str__`; the migrated tests failed with clear pytest introspection output (`assert 'slug_value' in '/places/mutated/'`), then the models were restored byte-for-byte (confirmed by `git status`).
+
+### Notes
+- `main/tests.py` was already pytest-style and was intentionally left untouched: its `mocked_now` helper patches `datetime.datetime` while `main.views.get_age` uses `datetime.date.today()`, so "hardening" its no-op expressions into real asserts would have changed test outcomes/application expectations, which the task forbids.
+- No new dependency declarations were needed: `pytest`, `pytest-django`, `pytest-env`, `coverage` and `django-coverage-plugin` are already declared in the tox `[testenv:{test,coverage,coverage-html}]` deps inside `pyproject.toml`. `poetry.lock` was deliberately left untouched so it stays consistent with `pyproject.toml` (adding deps without regenerating the lock would break `poetry install`; regeneration is impossible here — no `poetry` binary, no PyPI access, no local wheel cache).
+- Final patch: 9 test modules + 1 line in `pyproject.toml` + 1 new `conftest.py`. No changes to `.github/` workflows, `Dockerfile`, `docker-compose.yml`, settings, or documentation. The temporary verification script lived in `/tmp` and has been deleted; build artifacts (`.coverage`, `.pytest_cache`) were removed.
