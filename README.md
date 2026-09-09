@@ -7,55 +7,53 @@
 </p>
 
 <p align="center"><sub>
-  <a href="#summary">Summary</a> · <a href="#results">Results</a> · <a href="#coverage">Coverage</a> · <a href="#task-list">Tasks</a> · <a href="#repository-structure">Structure</a> · <a href="#scoring-signals">Scoring</a> · <a href="#reproduction">Reproduction</a>
+  <a href="#summary">Summary</a> · <a href="#results">Results</a> · <a href="#coverage">Coverage</a> · <a href="#task-list">Tasks</a> · <a href="#repository-structure">Structure</a> · <a href="#scoring-signals">Scoring</a> · <a href="#figures">Figures</a>
 </sub></p>
 
 # Thanatos: 3-Task Migration Sample
 
 **Thanatos asks a coding agent to carry out one real, self-contained software migration inside a checked-out repository — a framework rewrite, a test-runner port, or an HTTP-client migration — with existing tests required to keep passing.** Domains below are read directly from each task's `instruction.md`, not inferred: a Flask→Django 5.0.6 rewrite, a unittest→pytest test-suite port, and a requests→async-httpx migration.
 
-This sample is **3 tasks × 2 models**, but not a full grid: every populated model/task cell has exactly **8** runs, and two cells — `glm-5.3` on `dan-nor98/pypostboy` and on `MorAlekss/cli-migration-test-3` — have no runs at all. All **32 run directories carry a scored `result.json`**.
+This sample is **3 tasks × 1 model** (`claude-opus-5`): every task has exactly **8** runs, and all **24 run directories carry a scored `result.json`**.
 
 ## Summary
 
 | Property | Value |
 | :--- | :--- |
 | Tasks | **3**, across **3** distinct upstream repositories (one task per repository) |
-| Models | `claude-opus-5` and `glm-5.3` — the trajectory directory names used throughout; `agent_info.model_info` records `anthropic/claude-opus-5` for the former and `anthropic/glm-5` / `"3"` for the latter |
-| Run directories | **32** total, all scored (`result.json` present) |
-| Per-cell runs | **8** per populated cell — see [Task list](#task-list); two tasks have **zero** `glm-5.3` runs at all |
+| Model | `claude-opus-5` — the trajectory directory name used throughout; `agent_info.model_info` records `anthropic/claude-opus-5` |
+| Run directories | **24** total, all scored (`result.json` present) |
+| Per-task runs | **8** per task, across all 3 tasks — see [Task list](#task-list) |
 | Primary metric | continuous `verifier_result.scores.score_eval` ∈ [0, 1], reported ×100 — **not** a pass rate |
-| `score` / `score_binary` / `score_continuous_v2` | each `0.0` on all 32 scored runs; `verifier_result.status` is the literal string `"vacuous"` on all 32. Shown as-is; this document does not define their semantics or attach a pass/fail reading (see [Scoring signals](#scoring-signals)) |
-| Cost | `agent_result.cost_usd`, all 32 scored runs |
+| `score` / `score_binary` / `score_continuous_v2` | each `0.0` on all 24 scored runs; `verifier_result.status` is the literal string `"vacuous"` on all 24. Shown as-is; this document does not define their semantics or attach a pass/fail reading (see [Scoring signals](#scoring-signals)) |
+| Cost | `agent_result.cost_usd`, all 24 scored runs |
 | Declared language | 1 declared tag from `task.toml` `keywords[0]` — Python (3); every task carries an explicit `keywords` entry |
 | Declared difficulty | from `task.toml` `metadata.difficulty` — `hard` (1), `medium` (1), `easy` (1); a descriptive tag, not a calibrated tier |
 
-| metric | claude-opus-5 | glm-5.3 |
-|---|--:|--:|
-| pooled mean `score_eval` (run-weighted) | 34.98% (n=24) | 40.82% (n=8) |
-| task-macro mean `score_eval` (task-weighted) | 34.98% (n=3 tasks) | 40.82% (n=1 task) |
-| pooled mean agent cost / run | $4.51 | $0.00 |
-| task-macro mean agent cost / run | $4.51 | $0.00 |
-| total agent cost (scored subset) | $108.18 | $0.00 |
-| mean episodes / scored run | 127.4 | 112.6 |
+| metric | claude-opus-5 |
+|---|--:|
+| pooled mean `score_eval` (run-weighted) | 34.98% (n=24) |
+| task-macro mean `score_eval` (task-weighted) | 34.98% (n=3 tasks) |
+| pooled mean agent cost / run | $4.51 |
+| task-macro mean agent cost / run | $4.51 |
+| total agent cost (scored subset) | $108.18 |
+| mean episodes / scored run | 127.4 |
 
-Both models pooled across all 32 scored runs: **36.44%**. Both models, task-macro (mean of each of the 3 tasks' combined-model mean): **39.90%**.
-
-**Pooled** weights every scored run equally; **task-macro** weights every task a model has data on equally, regardless of its run count. They are reported side by side because the grid is not full; with every populated cell at exactly 8 runs, the two coincide per model here, but the distinction still matters across models: `glm-5.3` has no scored runs at all on `dan-nor98/pypostboy` or `MorAlekss/cli-migration-test-3`, so its macro mean is over 1 task, not 3. `glm-5.3` reports `cost_usd` of `$0.00` on every one of its 8 scored runs — shown as reported, not imputed or excluded (see the cost chart's own footnote).
+**Pooled** weights every scored run equally; **task-macro** weights every task equally, regardless of its run count. They are reported side by side, but with every task at exactly 8 runs the grid is balanced, so the two coincide here.
 
 ## Results
 
-Both charts below plot the same 3 tasks, in the same fixed alphabetical order, for both models. The x-axis is categorical, not a numeric scale, and the connecting lines are a visual guide between three fixed positions, not a claim of a trend; a gap labeled `N/A` marks a model with zero scored runs on that task. Chart labels use the repo-only name (e.g. `pypostboy`); the full `org/repo` is in the [task list](#task-list).
+The chart below plots the 3 tasks in fixed alphabetical order. The x-axis is categorical, not a numeric scale, and the connecting line is a visual guide between three fixed positions, not a claim of a trend. Chart labels use the repo-only name (e.g. `pypostboy`); the full `org/repo` is in the [task list](#task-list).
 
 ### Mean score_eval by task
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/score_eval_by_task-dark.png">
   <source media="(prefers-color-scheme: light)" srcset="images/score_eval_by_task-light.png">
-  <img alt="Mean score_eval by task, claude-opus-5 vs glm-5.3" src="images/score_eval_by_task-light.png" width="880">
+  <img alt="Mean score_eval by task, claude-opus-5" src="images/score_eval_by_task-light.png" width="880">
 </picture>
 
-Only one task — `dotmanca` — has scored runs from both models, and `glm-5.3` reads higher there (40.82% vs 11.32%). `claude-opus-5` is the only model with scored runs on `pypostboy` (62.01% — also its highest cell) and on `cli-migration-test-3` (31.61%). This is 1–3 small cells per model, not a stable rate.
+`claude-opus-5` reads highest on `pypostboy` (62.01% — also its highest cell), then `cli-migration-test-3` (31.61%), and lowest on `dotmanca` (11.32%). This is 3 small cells of 8 runs each, not a stable rate.
 
 ## Coverage
 
@@ -69,15 +67,13 @@ Only one task — `dotmanca` — has scored runs from both models, and `glm-5.3`
 
 ## Task list
 
-`n` is `scored/total` run directories per model per task. `score_eval` is that cell's mean (×100); a cell with 0 scored runs reads `N/A`. Rows are alphabetical by repository.
+`n` is `scored/total` run directories per task. `score_eval` is that task's mean (×100). Rows are alphabetical by repository.
 
-| task | repo | lang | difficulty | claude-opus-5 n | claude-opus-5 score_eval | glm-5.3 n | glm-5.3 score_eval |
-|---|---|:--:|:--:|--:|--:|--:|--:|
-| [`394d9d5c`](394d9d5c-357d-56c2-81e5-e0a2d32ab101/) | dan-nor98/pypostboy | python | hard | 8/8 | **62.01%** | 0/0 | N/A |
-| [`72dcd7c9`](72dcd7c9-00f7-5c07-a9db-749525a450e4/) | evanepio/dotmanca | python | medium | 8/8 | 11.32% | 8/8 | **40.82%** |
-| [`739bc356`](739bc356-7e4e-5f45-8af0-ada3a0429dde/) | MorAlekss/cli-migration-test-3 | python | easy | 8/8 | 31.61% | 0/0 | N/A |
-
-Neither `dan-nor98/pypostboy` nor `MorAlekss/cli-migration-test-3` has a `glm-5.3/` trajectory directory at all (0/0, not 0/8) — missing cells, not zero-run outcomes.
+| task | repo | lang | difficulty | claude-opus-5 n | claude-opus-5 score_eval |
+|---|---|:--:|:--:|--:|--:|
+| [`394d9d5c`](394d9d5c-357d-56c2-81e5-e0a2d32ab101/) | dan-nor98/pypostboy | python | hard | 8/8 | **62.01%** |
+| [`72dcd7c9`](72dcd7c9-00f7-5c07-a9db-749525a450e4/) | evanepio/dotmanca | python | medium | 8/8 | 11.32% |
+| [`739bc356`](739bc356-7e4e-5f45-8af0-ada3a0429dde/) | MorAlekss/cli-migration-test-3 | python | easy | 8/8 | 31.61% |
 
 ## Repository structure
 
@@ -90,41 +86,34 @@ thanatos-samples/
 │   ├── score_eval_by_task-{light,dark}.{svg,png}
 │   ├── cost_by_task-{light,dark}.{svg,png}
 │   └── tasks_by_language-{light,dark}.{svg,png}
-├── scripts/
-│   └── generate_charts.py        # reads the data below, prints the reproducible summary, writes the SVGs above
 └── <uuid>/                       # one directory per task (3)
     ├── task.toml                 # identical field shape on all 3 tasks: schema_version, uuid_v5, keywords,
     │                             # metadata.difficulty/category, and verifier/agent/environment config
     ├── instruction.md            # the verbatim prompt handed to the agent -- "# org/repo" on line 1
-    ├── TRUTH.md                  # human-written reference notes for this migration
     ├── environment/              # Dockerfile
-    ├── solution/                 # fix.patch, solve.sh
-    ├── tests/                    # test.sh, test_output.py, run_tests.py, rubrics.json, config.json, test.patch
-    └── trajectories/                 # per-run shape below is identical across both model directories
-        ├── claude-opus-5/
-        │   └── run_1 … run_8/         # 8 runs in every populated cell -- see the task list
-        │       ├── config.json        # full run configuration
-        │       ├── result.json        # verifier_result.scores + assay, agent_result.cost_usd -- this
-        │       │                      # document's primary numeric source (scored runs only)
-        │       ├── agent/              # trajectory.json, recording.cast, <model>.pane
-        │       ├── artifacts/          # manifest.json
-        │       └── verifier/           # process.json (corroborating per-run score composition detail),
-        │                                # score.md, final_score.md, test-stdout.md, + one further per-item log
-        └── glm-5.3/                    # same per-run shape as claude-opus-5/ above; absent entirely on
-                                          # dan-nor98/pypostboy and MorAlekss/cli-migration-test-3 -- see the task list
+    ├── solution/                 # fix.patch, solve.sh, truth.md (human-written reference notes)
+    ├── tests/                    # test.sh, test_output.py, run_tests.py, rubrics.json, config.json
+    └── trajectories/                 # per-run shape below is identical across all 3 tasks
+        └── claude-opus-5/
+            └── run_1 … run_8/         # 8 runs in every task -- see the task list
+                ├── config.json        # full run configuration
+                ├── result.json        # verifier_result.scores + assay, agent_result.cost_usd -- this
+                │                      # document's primary numeric source (scored runs only)
+                ├── agent/              # trajectory.json, recording.cast, <model>.pane
+                ├── artifacts/          # manifest.json
+                └── verifier/           # process.json (corroborating per-run score composition detail),
+                                        # score.md, final_score.md, test-stdout.md, + one further per-item log
 ```
 
-`tests/test.patch` is 0 bytes on all 3 tasks — no test-diff content is shipped for any of them; the existing test suite already in the checked-out repository is what each `instruction.md` requires stay passing, rather than tests being injected via this file.
-
-During a run the agent sees only the built repository and `instruction.md`; `solution/` and `tests/` are used exclusively by the verifier. `scripts/generate_charts.py` reads `task.toml`, `instruction.md`, each scored run's `result.json`, and each task's `tests/rubrics.json`; it additionally reads `verifier/process.json` for the one corroborating check described in [Scoring signals](#scoring-signals) — not as a source for any aggregate. The further per-item log noted above is not read by the script; a reader can cross-check it by hand.
+During a run the agent sees only the built repository and `instruction.md`; `solution/` and `tests/` are used exclusively by the verifier. The aggregates in this document are derived from each scored run's `result.json`, together with every task's `task.toml`, `instruction.md`, and `tests/rubrics.json` (item counts only); `verifier/process.json` is read only for the one corroborating check described in [Scoring signals](#scoring-signals), not as a source for any aggregate. The further per-item log noted above is not used for any figure; a reader can cross-check it by hand.
 
 ## Scoring signals
 
-`verifier_result.scores.score_eval` (continuous, [0, 1]) is the metric this document treats as primary, reported ×100. Stated literally, with no reading attached: on every one of the 32 scored runs, `verifier_result.scores.score`, `score_binary`, and `score_continuous_v2` are each `0.0`, `verifier_result.status` is the literal string `"vacuous"`, and `verifier_result.score_version` is the literal string `"binary"`. Their semantics are not defined anywhere in the data this document reads, and this document does not infer one — it does not say the binary-outcome channel is "broken," does not say the sample has "zero solves," and does not treat a higher `score_eval` on a given run as implying anything about what `score_binary` "should" have been. `score_eval` is a separate, continuous field; nothing here derives it from, or reconciles it against, the always-`0.0` fields.
+`verifier_result.scores.score_eval` (continuous, [0, 1]) is the metric this document treats as primary, reported ×100. Stated literally, with no reading attached: on every one of the 24 scored runs, `verifier_result.scores.score`, `score_binary`, and `score_continuous_v2` are each `0.0`, `verifier_result.status` is the literal string `"vacuous"`, and `verifier_result.score_version` is the literal string `"binary"`. Their semantics are not defined anywhere in the data this document reads, and this document does not infer one — it does not say the binary-outcome channel is "broken," does not say the sample has "zero solves," and does not treat a higher `score_eval` on a given run as implying anything about what `score_binary` "should" have been. `score_eval` is a separate, continuous field; nothing here derives it from, or reconciles it against, the always-`0.0` fields.
 
-`verifier_result.assay.completion_status` is the string `complete` on **all 32** scored runs — there is no `incomplete` run in this corpus. Reported as-is; this document does not characterize what `completion_status` measures or attach an outcome reading to the value.
+`verifier_result.assay.completion_status` is the string `complete` on **all 24** scored runs — there is no `incomplete` run in this corpus. Reported as-is; this document does not characterize what `completion_status` measures or attach an outcome reading to the value.
 
-`verifier_result.assay.code_quality.score` is present (non-`null`) on all 32 scored runs; the script still excludes a `null` from any quality-touching figure rather than counting it as `0`, but that path is unexercised here.
+`verifier_result.assay.code_quality.score` is present (non-`null`) on all 24 scored runs; a `null` would be excluded from any quality-touching figure rather than counted as `0`, but that path is unexercised here.
 
 Each task's `tests/rubrics.json` carries 11–12 weighted, judge-scored criteria (35 total across the 3 tasks) evaluated against the agent's final diff. Separately, each scored run's `verifier/process.json` names its own score-composition schema — `thanatos.bucket-composition/v1` — and ships that schema's operands (`bucket_d_score`, `bucket_n_ceiling`, `score_regression_factor`). It does not state how they combine. The relation below is **derived by this document** from those shipped operands, not quoted from the data:
 
@@ -132,24 +121,11 @@ Each task's `tests/rubrics.json` carries 11–12 weighted, judge-scored criteria
 score_eval = min(bucket_d_score, bucket_n_ceiling) * score_regression_factor
 ```
 
-This document then checked that derived relation, using each run's own already-shipped operands from `process.json` against that same run's `score_eval` in `result.json`: it reproduces `score_eval` on all 32 scored runs, largest deviation `4.94e-05` (< 1e-4). Holding on all 32 is the evidence for the derivation, not a restatement of something the file declares. This is a corroborating check `scripts/generate_charts.py` performs by reading `process.json` for that purpose alone — `result.json` remains the source for every aggregate this document reports; `process.json` is not read for any of them.
+This document then checked that derived relation, using each run's own already-shipped operands from `process.json` against that same run's `score_eval` in `result.json`: it reproduces `score_eval` on all 24 scored runs, largest deviation `4.20e-05` (< 1e-4). Holding on all 24 is the evidence for the derivation, not a restatement of something the file declares. This is a corroborating check performed by reading `process.json` for that purpose alone — `result.json` remains the source for every aggregate this document reports; `process.json` is not read for any of them.
 
-## Reproduction
+## Figures
 
-```bash
-python3 scripts/generate_charts.py
-```
-
-Python 3.9+ compatible, standard library only (including a small hand-written `task.toml` reader, since stdlib `tomllib` requires 3.11+), makes no network access, installs no dependency, and executes no task's Docker environment, agent, or verifier. It reads: every task's `task.toml` and `instruction.md`; every scored run's `result.json` (the source for every score/cost/episode aggregate this document reports); every task's `tests/rubrics.json` (item counts only); and, for the one corroborating check described in [Scoring signals](#scoring-signals) only, every scored run's `verifier/process.json`. It asserts 3 tasks, 32 run directories, and exactly 32 scored runs before printing anything, and asserts `score`/`score_binary`/`score_continuous_v2`/`status`/`score_version` match the literals quoted in [Scoring signals](#scoring-signals) on every scored run; any mismatch, or a language tag outside the script's known set, aborts the script rather than silently printing a wrong number or a chart with a dropped category. Expected output opens with:
-
-```
-============================================================================================
-THANATOS -- 3 tasks, 32 run directories, all 32 scored (result.json present), 2 models
-============================================================================================
-```
-
-...and ends by writing the six SVGs under `images/`. The task/run counts, per-cell `score_eval` and cost figures, pooled/macro aggregates, language and difficulty coverage, the field-value and `completion_status` breakdowns, the rubric item counts, and the composition-check result are all numbers this script prints; software version numbers named in this document's prose (e.g. "Python 3.9+") are not among them — they describe the script's own compatibility target, not data it read. The script emits **SVG only**. The `.png` fallbacks referenced from the `<picture>` tags above are separate browser exports of those exact SVGs, each rendered at its SVG's own native pixel dimensions (1600×900 for the two line charts, 1600×1200 for the language donut) with the source element scaled to fill the full captured viewport — not output of this script, and no specific render command is documented here. The hero banner (`images/hero.png`, 1760×532) is standalone artwork, not generated data.
-
+The six SVGs under `images/` and their `.png` exports are committed static assets. The `.png` fallbacks referenced from the `<picture>` tags above are browser exports of those exact SVGs, each rendered at its SVG's own native pixel dimensions (1600×900 for the two line charts, 1600×1200 for the language donut). The hero banner (`images/hero.png`, 1760×532) is standalone artwork, not generated data. Every numeric fact in this document is derived from each scored run's `result.json`, together with `task.toml`, `instruction.md`, and `tests/rubrics.json`.
 
 ## License
 

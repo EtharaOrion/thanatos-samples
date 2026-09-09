@@ -9,9 +9,6 @@
 <line x1="1120" y1="42" x2="1156" y2="42" stroke="#0e8a78" stroke-width="4" stroke-linecap="round"/>
 <circle cx="1138" cy="42" r="6.5" fill="#0e8a78" stroke="#ffffff" stroke-width="2"/>
 <text x="1170" y="49" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="19" fill="#0a1414">claude-opus-5</text>
-<line x1="1360" y1="42" x2="1396" y2="42" stroke="#b9781f" stroke-width="3.5" stroke-dasharray="9 7" stroke-linecap="round"/>
-<polygon points="1378,35 1385,42 1378,49 1371,42" fill="#b9781f" stroke="#b9781f" stroke-width="1.5"/>
-<text x="1408" y="49" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="19" fill="#0a1414">glm-5.3</text>
 <line x1="130" y1="712.0" x2="1540" y2="712.0" stroke="rgba(10,30,28,0.10)" stroke-width="1"/>
 <text x="114" y="719.0" text-anchor="end" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="18" fill="#4a6560">0%</text>
 <line x1="130" y1="601.6" x2="1540" y2="601.6" stroke="rgba(10,30,28,0.10)" stroke-width="1"/>
@@ -31,26 +28,20 @@
 <polyline points="365.0,369.7 835.0,649.5 1305.0,537.5" fill="none" stroke="#0e8a78" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
 <circle cx="365.0" cy="369.7" r="9" fill="#0e8a78" opacity="0.28" filter="url(#glow)"/>
 <circle cx="365.0" cy="369.7" r="8" fill="#0e8a78" stroke="#ffffff" stroke-width="3"/>
-<text x="365.0" y="698.0" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="17" font-weight="bold" fill="#4a6560">glm: N/A</text>
 <text x="365.0" y="335.7" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="18" font-weight="bold" fill="#0e8a78">62.01%</text>
 <text x="365.0" y="355.7" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="14" fill="#4a6560">n=8</text>
 <text x="365.0" y="746" text-anchor="middle" font-family="Georgia, 'Iowan Old Style', 'Times New Roman', ui-serif, serif" font-size="19" fill="#0a1414">pypostboy</text>
-<polygon points="835.0,476.7 845.0,486.7 835.0,496.7 825.0,486.7" fill="#b9781f" opacity="0.28" filter="url(#glow)"/>
-<polygon points="835.0,476.7 845.0,486.7 835.0,496.7 825.0,486.7" fill="#b9781f" stroke="#b9781f" stroke-width="1.5"/>
 <circle cx="835.0" cy="649.5" r="9" fill="#0e8a78" opacity="0.28" filter="url(#glow)"/>
 <circle cx="835.0" cy="649.5" r="8" fill="#0e8a78" stroke="#ffffff" stroke-width="3"/>
 <text x="835.0" y="615.5" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="18" font-weight="bold" fill="#0e8a78">11.32%</text>
 <text x="835.0" y="635.5" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="14" fill="#4a6560">n=8</text>
-<text x="835.0" y="452.7" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="18" font-weight="bold" fill="#b9781f">40.82%</text>
-<text x="835.0" y="472.7" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="14" fill="#4a6560">n=8</text>
 <text x="835.0" y="764" text-anchor="middle" font-family="Georgia, 'Iowan Old Style', 'Times New Roman', ui-serif, serif" font-size="19" fill="#0a1414">dotmanca</text>
 <circle cx="1305.0" cy="537.5" r="9" fill="#0e8a78" opacity="0.28" filter="url(#glow)"/>
 <circle cx="1305.0" cy="537.5" r="8" fill="#0e8a78" stroke="#ffffff" stroke-width="3"/>
-<text x="1305.0" y="698.0" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="17" font-weight="bold" fill="#4a6560">glm: N/A</text>
 <text x="1305.0" y="503.5" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="18" font-weight="bold" fill="#0e8a78">31.61%</text>
 <text x="1305.0" y="523.5" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="14" fill="#4a6560">n=8</text>
 <text x="1305.0" y="746" text-anchor="middle" font-family="Georgia, 'Iowan Old Style', 'Times New Roman', ui-serif, serif" font-size="19" fill="#0a1414">cli-migration-test-3</text>
-<text x="130" y="800" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="15" fill="#4a6560">3 tasks, alphabetical by repo · each populated cell has n=8 runs, disclosed under each point — two glm-5.3 cells have no runs at all</text>
-<text x="130" y="822" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="15" fill="#4a6560">score_binary, score, score_continuous_v2 are 0.0; status is the literal string &quot;vacuous&quot; on all 32 runs — shown as-is, no pass/fail reading</text>
-<text x="130" y="844" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="15" fill="#4a6560">lines are a visual guide between categorical points, not a continuous trend; a gap marks a model with 0 scored runs on that task</text>
+<text x="130" y="800" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="15" fill="#4a6560">3 tasks, alphabetical by repo · each task has n=8 runs, disclosed under each point</text>
+<text x="130" y="822" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="15" fill="#4a6560">score_binary, score, score_continuous_v2 are 0.0; status is the literal string &quot;vacuous&quot; on all 24 runs — shown as-is, no pass/fail reading</text>
+<text x="130" y="844" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="15" fill="#4a6560">lines are a visual guide between categorical points, not a continuous trend</text>
 </svg>

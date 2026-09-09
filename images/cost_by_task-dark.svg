@@ -9,9 +9,6 @@
 <line x1="1120" y1="42" x2="1156" y2="42" stroke="#35d0ba" stroke-width="4" stroke-linecap="round"/>
 <circle cx="1138" cy="42" r="6.5" fill="#35d0ba" stroke="#0f2723" stroke-width="2"/>
 <text x="1170" y="49" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="19" fill="#eef2ea">claude-opus-5</text>
-<line x1="1360" y1="42" x2="1396" y2="42" stroke="#e2ac52" stroke-width="3.5" stroke-dasharray="9 7" stroke-linecap="round"/>
-<polygon points="1378,35 1385,42 1378,49 1371,42" fill="#e2ac52" stroke="#e2ac52" stroke-width="1.5"/>
-<text x="1408" y="49" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="19" fill="#eef2ea">glm-5.3</text>
 <line x1="130" y1="712.0" x2="1540" y2="712.0" stroke="rgba(143,227,212,0.16)" stroke-width="1"/>
 <text x="114" y="719.0" text-anchor="end" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="18" fill="#9fc4bc">$0</text>
 <line x1="130" y1="633.1" x2="1540" y2="633.1" stroke="rgba(143,227,212,0.16)" stroke-width="1"/>
@@ -35,25 +32,18 @@
 <polyline points="365.0,320.2 835.0,610.2 1305.0,672.5" fill="none" stroke="#35d0ba" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
 <circle cx="365.0" cy="320.2" r="9" fill="#35d0ba" opacity="0.28" filter="url(#glow)"/>
 <circle cx="365.0" cy="320.2" r="8" fill="#35d0ba" stroke="#0f2723" stroke-width="3"/>
-<text x="365.0" y="698.0" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="17" font-weight="bold" fill="#9fc4bc">glm: N/A</text>
 <text x="365.0" y="286.2" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="18" font-weight="bold" fill="#35d0ba">$9.94</text>
 <text x="365.0" y="306.2" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="14" fill="#9fc4bc">n=8</text>
 <text x="365.0" y="746" text-anchor="middle" font-family="Georgia, 'Iowan Old Style', 'Times New Roman', ui-serif, serif" font-size="19" fill="#eef2ea">pypostboy</text>
-<polygon points="835.0,702.0 845.0,712.0 835.0,722.0 825.0,712.0" fill="#e2ac52" opacity="0.28" filter="url(#glow)"/>
-<polygon points="835.0,702.0 845.0,712.0 835.0,722.0 825.0,712.0" fill="#e2ac52" stroke="#e2ac52" stroke-width="1.5"/>
 <circle cx="835.0" cy="610.2" r="9" fill="#35d0ba" opacity="0.28" filter="url(#glow)"/>
 <circle cx="835.0" cy="610.2" r="8" fill="#35d0ba" stroke="#0f2723" stroke-width="3"/>
 <text x="835.0" y="576.2" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="18" font-weight="bold" fill="#35d0ba">$2.58</text>
 <text x="835.0" y="596.2" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="14" fill="#9fc4bc">n=8</text>
-<text x="835.0" y="678.0" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="18" font-weight="bold" fill="#e2ac52">$0.00</text>
-<text x="835.0" y="698.0" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="14" fill="#9fc4bc">n=8</text>
 <text x="835.0" y="764" text-anchor="middle" font-family="Georgia, 'Iowan Old Style', 'Times New Roman', ui-serif, serif" font-size="19" fill="#eef2ea">dotmanca</text>
 <circle cx="1305.0" cy="672.5" r="9" fill="#35d0ba" opacity="0.28" filter="url(#glow)"/>
 <circle cx="1305.0" cy="672.5" r="8" fill="#35d0ba" stroke="#0f2723" stroke-width="3"/>
-<text x="1305.0" y="698.0" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="17" font-weight="bold" fill="#9fc4bc">glm: N/A</text>
 <text x="1305.0" y="638.5" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="18" font-weight="bold" fill="#35d0ba">$1.00</text>
 <text x="1305.0" y="658.5" text-anchor="middle" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="14" fill="#9fc4bc">n=8</text>
 <text x="1305.0" y="746" text-anchor="middle" font-family="Georgia, 'Iowan Old Style', 'Times New Roman', ui-serif, serif" font-size="19" fill="#eef2ea">cli-migration-test-3</text>
-<text x="130" y="800" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="15" fill="#9fc4bc">3 tasks, alphabetical by repo · each populated cell has n=8 runs, disclosed under each point</text>
-<text x="130" y="822" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="15" fill="#9fc4bc">glm-5.3 reports $0.00 on the one task it ran (all 8 glm-5.3 scored runs) — shown as reported, not imputed or excluded</text>
+<text x="130" y="800" font-family="'JetBrains Mono','SF Mono','Berkeley Mono',ui-monospace,'Courier New',monospace" font-size="15" fill="#9fc4bc">3 tasks, alphabetical by repo · each task has n=8 runs, disclosed under each point</text>
 </svg>
