@@ -1,0 +1,673 @@
+{
+  "classification": "native_behavior",
+  "native_methods_executed": 218,
+  "native_cases_executed": 225,
+  "native_cases_passed": 213,
+  "native_exit_code": 2,
+  "restore_seconds": 1.8837580070830882,
+  "build_seconds": 10.604571255040355,
+  "test_seconds": 24.372708379058167,
+  "outcomes": {
+    "When_ClientSupportsSampling_Then_SampleAsyncReturnsText": [
+      "Passed"
+    ],
+    "When_ClientDoesNotSupportSampling_Then_SampleAsyncReturnsNull": [
+      "Passed"
+    ],
+    "When_ToolInjectsSampling_Then_SchemaHasNoSamplingParameter": [
+      "Passed"
+    ],
+    "When_ClientSupportsElicitation_Then_ElicitTextAsyncReturnsText": [
+      "Passed"
+    ],
+    "When_ClientSupportsElicitation_Then_ElicitChoiceAsyncReturnsIndex": [
+      "Passed"
+    ],
+    "When_ClientSupportsElicitation_Then_ElicitBooleanAsyncReturnsBool": [
+      "Passed"
+    ],
+    "When_ClientDoesNotSupportElicitation_Then_ElicitReturnsNull": [
+      "Passed"
+    ],
+    "When_UserCancelsElicitation_Then_ElicitReturnsNull": [
+      "Passed"
+    ],
+    "When_ToolInjectsElicitation_Then_SchemaHasNoElicitationParameter": [
+      "Passed"
+    ],
+    "When_ToolInjectsFeedback_Then_SchemaHasNoFeedbackParameter": [
+      "Passed"
+    ],
+    "When_AppsEnabled_Then_ServerCapabilitiesIncludeUiExtension": [
+      "Passed"
+    ],
+    "When_CommandFilterIsConfigured_Then_StaticAppsCapabilityProbeDoesNotReinvokeIt": [
+      "Passed"
+    ],
+    "When_CommandHasMcpApp_Then_ToolContainsUiMetadata": [
+      "Passed"
+    ],
+    "When_UiResourceRead_Then_ReturnsHtmlWithMcpAppMimeType": [
+      "Passed"
+    ],
+    "When_AFailingUiResourceReadEmitsFeedback_Then_ItRidesInTheError": [
+      "Passed"
+    ],
+    "When_ARawUiResourceReadsCurrentRoots_Then_TheFirstReadSeesThem": [
+      "Failed"
+    ],
+    "When_ARawUiResourceReportsThenFails_Then_TheFeedbackRidesInTheError": [
+      "Passed"
+    ],
+    "When_ARawUiResourceReportsAndSucceeds_Then_TheBodyCarriesNoFeedback": [
+      "Passed"
+    ],
+    "When_ARawUiResourceReportsThenCancelsItself_Then_TheFeedbackStillRides": [
+      "Passed"
+    ],
+    "When_ACommandBackedAppFails_Then_FeedbackRidesAndTheDetailIsWithheld": [
+      "Passed"
+    ],
+    "When_ARawUiResourceReportsThenRaisesAnMcpException_Then_ItsMessageSurvives": [
+      "Passed"
+    ],
+    "When_ARawUiResourceReportsThenFails_Then_TheHandlersOwnMessageIsWithheld": [
+      "Passed"
+    ],
+    "When_AnAppRegistrationIsShadowed_Then_TheAppsExtensionIsStillAdvertised": [
+      "Passed"
+    ],
+    "When_AnAppIsGatedOnTheRootsData_Then_TheAppsExtensionIsStillAdvertised": [
+      "Passed"
+    ],
+    "When_AppToolCalled_Then_TextFallbackStillWorks": [
+      "Passed"
+    ],
+    "When_CommandIsMcpAppResource_Then_ResourceReadUsesInjectedServices": [
+      "Passed"
+    ],
+    "When_CommandIsAppOnlyMcpAppResource_Then_ToolVisibilityIsApp": [
+      "Passed"
+    ],
+    "When_CommandHasPreferredDisplayMode_Then_ResourceMetaContainsDisplayPreference": [
+      "Passed"
+    ],
+    "When_CommandHasCustomUiMetadata_Then_ResourceMetaIncludesIt": [
+      "Passed"
+    ],
+    "When_CommandHasPermissions_Then_ResourceMetaIncludesThem": [
+      "Passed"
+    ],
+    "When_McpAppResourceToolIsCalled_Then_ModelToolDoesNotReturnHtml": [
+      "Passed"
+    ],
+    "When_McpAppLauncherTextIsConfigured_Then_ToolReturnsThatText": [
+      "Passed"
+    ],
+    "When_CommandIsParameterizedMcpAppResource_Then_UiUriTemplateBindsRouteArguments": [
+      "Passed"
+    ],
+    "When_CommandIsNestedMcpAppResource_Then_UiUriTemplateIncludesContexts": [
+      "Passed"
+    ],
+    "When_CommandUsesCustomConstraint_Then_UiUriTemplateBindsRouteArgument": [
+      "Passed"
+    ],
+    "When_TwoSessionsShareOneHandler_Then_BothNegotiateTheModernRevision": [
+      "Passed"
+    ],
+    "When_TwoClientsWithDifferentCapabilitiesShareHandler_Then_CapabilityBindingIsPerRequest": [
+      "Passed"
+    ],
+    "When_TwoRootCapableClientsShareHandler_Then_EachSeesOwnRoots": [
+      "Passed"
+    ],
+    "When_FirstSessionCloses_Then_SurvivingSessionStillReceivesRoutingNotifications": [
+      "Passed"
+    ],
+    "When_AModernToolMutatesSessionState_Then_TheAdvertisedSetDoesNotChange": [
+      "Passed"
+    ],
+    "When_ALegacyToolMutatesSessionState_Then_TheAdvertisedSetChanges": [
+      "Passed"
+    ],
+    "When_AModernClientCallsACapabilityGatedTool_Then_TheCommandRuns": [
+      "Passed"
+    ],
+    "When_AModernClientCallsAnUnadvertisedGatedTool_Then_ItIsStillNotFound": [
+      "Passed"
+    ],
+    "When_AModernProjectionFailsTransiently_Then_NoSessionServesItsOwnStaleCatalog": [
+      "Passed"
+    ],
+    "When_AModernClientAnswersAGateItIsGatedOn_Then_ItsAnswerCannotRetractTheTool": [
+      "Failed"
+    ],
+    "When_AModernClientCallsAToolGatedOnALaunchGlobal_Then_TheCommandRuns": [
+      "Passed"
+    ],
+    "When_AToolCallCompletes_Then_ItsSessionRegistrationIsReleased": [
+      "Passed"
+    ],
+    "When_ModernSessionsShareAGatedGraph_Then_TheAdvertisedSetIsInvariant": [
+      "Passed"
+    ],
+    "When_AModernSessionListsTools_Then_NoRootsRoundTripIsMade": [
+      "Passed"
+    ],
+    "When_AModernPredicateReadsTheRootsData_Then_TheAdvertisedSetIsStillInvariant": [
+      "Passed"
+    ],
+    "When_AModernClientDeclaresNoCapabilities_Then_EveryCapabilityGatedModuleIsStillAdvertised": [
+      "Passed"
+    ],
+    "When_LegacySessionsShareAGatedGraph_Then_EachSeesItsOwnTools": [
+      "Passed"
+    ],
+    "When_ModernClientListsTools_Then_ListResultIsTaggedPrivateAndStale": [
+      "Passed"
+    ],
+    "When_ShimEnabledAndTwoLegacySessionsList_Then_EachSessionGetsTheIntro": [
+      "Passed"
+    ],
+    "When_ShimEnabledAndAModernSessionLists_Then_TheCatalogIsTheSameEveryTime": [
+      "Passed"
+    ],
+    "When_TwoSessionsRunConcurrently_Then_EachSeesOwnTools": [
+      "Passed"
+    ],
+    "When_ToolsInvokedConcurrently_Then_OutputIsIsolated": [
+      "Passed"
+    ],
+    "When_OneConnectionIsServedBothEras_Then_EachGetsItsOwnCatalog": [
+      "Passed"
+    ],
+    "When_TwoFirstCallsRaceOnOneConnection_Then_TheyShareOneRootsRoundTrip": [
+      "Failed"
+    ],
+    "When_RootsListChangedFollowsACompletedFetch_Then_TheNextCallRefetches": [
+      "Passed"
+    ],
+    "When_RootsAreInvalidatedWhileTheFetchIsUnanswered_Then_TheLateAnswerIsNotCached": [
+      "Passed"
+    ],
+    "When_AConnectionScopedFetchFails_Then_TheNextCallerReachesTheClientAgain": [
+      "Failed"
+    ],
+    "When_TheNativeFetchFails_Then_CurrentFallsBackToSoftRoots": [
+      "Passed"
+    ],
+    "When_AnInFlightFetchIsRetired_Then_TheDirectWaiterIsNotHandedIt": [
+      "Passed"
+    ],
+    "When_ExitCodePolicyMapsEverythingToZero_Then_ToolCallStillReportsError": [
+      "Passed"
+    ],
+    "When_ResourceFallbackDisabled_Then_ResourceNotInTools": [
+      "Passed"
+    ],
+    "When_ResourceFallbackEnabled_Then_ResourceAlsoInTools": [
+      "Passed"
+    ],
+    "When_ReadOnlyAsResource_Then_AlwaysATool": [
+      "Passed"
+    ],
+    "When_PromptFallbackDisabled_Then_PromptNotInTools": [
+      "Passed"
+    ],
+    "When_PromptFallbackEnabled_Then_PromptAlsoInTools": [
+      "Passed"
+    ],
+    "When_PromptFallbackEnabled_Then_StillInPromptsList": [
+      "Passed"
+    ],
+    "When_PromptCommandHasAnAutomationHiddenOption_Then_PromptArgumentsOmitIt": [
+      "Passed"
+    ],
+    "When_BothFallbacksEnabled_Then_AllCommandsAreTools": [
+      "Passed"
+    ],
+    "When_AutomationHiddenWithFallbacks_Then_StillExcluded": [
+      "Passed"
+    ],
+    "When_ReadOnlyDefault_Then_AppearsInResources": [
+      "Passed"
+    ],
+    "When_AutoPromoteDisabled_Then_ReadOnlyNotInResources": [
+      "Passed"
+    ],
+    "When_ExplicitAsResource_Then_AlwaysInResources": [
+      "Passed"
+    ],
+    "When_ResourceOnly_Then_NotATool": [
+      "Passed"
+    ],
+    "When_ResourceFallbackEnabled_Then_ResourceAlsoATool": [
+      "Passed"
+    ],
+    "When_ReadOnlyAsResource_Then_OneToolOneResource": [
+      "Passed"
+    ],
+    "When_PromptOnly_Then_NotATool": [
+      "Passed"
+    ],
+    "When_PromptFallbackEnabled_Then_PromptAlsoATool": [
+      "Passed"
+    ],
+    "When_AutomationHidden_Then_ExcludedFromEverything": [
+      "Passed"
+    ],
+    "When_HiddenResource_Then_ExcludedFromResources": [
+      "Passed"
+    ],
+    "When_AutomationHiddenResource_Then_ExcludedFromResources": [
+      "Passed"
+    ],
+    "When_HiddenPrompt_Then_ExcludedFromPrompts": [
+      "Passed"
+    ],
+    "When_AutomationHiddenPrompt_Then_ExcludedFromPrompts": [
+      "Passed"
+    ],
+    "When_DifferentRoutesCollide_Then_ThrowsAtStartup": [
+      "Passed"
+    ],
+    "When_SameCommandInMultiplePhases_Then_NoDuplicate": [
+      "Passed"
+    ],
+    "When_UseMcpServer_Then_McpServeRouteIsRegistered": [
+      "Passed"
+    ],
+    "When_CustomContextName_Then_RouteUsesCustomName": [
+      "Passed"
+    ],
+    "When_UseMcpServer_Then_McpContextIsHidden": [
+      "Passed"
+    ],
+    "When_McpHelpIsRequested_Then_ProtocolServeCommandIsShown": [
+      "Passed"
+    ],
+    "When_BuildingMcpOptions_Then_LoggingCapabilityIsAdvertised": [
+      "Passed"
+    ],
+    "When_CommandIsAutomationHidden_Then_ExcludedFromToolCandidates": [
+      "Passed"
+    ],
+    "When_EnrichedCommands_Then_DocModelContainsAllFields": [
+      "Passed"
+    ],
+    "When_ClientPinsLegacyProtocolVersion_Then_ListResultsCarryNoCacheHints": [
+      "Passed"
+    ],
+    "When_ClientPinsLegacyProtocolVersion_Then_InitializeHandshakeAndToolsWork": [
+      "Passed"
+    ],
+    "When_SerializingLongRunningTool_Then_WireShapeIsUnchanged": [
+      "Passed"
+    ],
+    "When_ModuleExcludedFromProgrammatic_Then_NotInToolCandidates": [
+      "Passed"
+    ],
+    "When_PrefillMatchesChoice_Then_ReturnsIndex": [
+      "Passed"
+    ],
+    "When_NoPrefillWithDefault_Then_ReturnsDefault": [
+      "Passed"
+    ],
+    "When_NoPrefillInDefaultsMode_Then_ReturnsZero": [
+      "Passed"
+    ],
+    "When_NoPrefillInFailMode_Then_Throws": [
+      "Passed"
+    ],
+    "When_PrefillIsYes_Then_ReturnsTrue": [
+      "Passed"
+    ],
+    "When_PrefillIsFalse_Then_ReturnsFalse": [
+      "Passed"
+    ],
+    "When_RuntimeAnswerNameDiffersOnlyByCase_Then_UniquePrefillStillResolves": [
+      "Passed"
+    ],
+    "When_CaseDistinctPrefillsExist_Then_ExactLookupWinsAndNonExactLookupIsAmbiguous": [
+      "Passed"
+    ],
+    "When_AllRuntimeAnswerKindsDifferOnlyByCase_Then_UniquePrefillsStillResolve": [
+      "Passed"
+    ],
+    "When_NoBoolPrefillInFailModeWithDefaultTrue_Then_ReturnsDefault": [
+      "Passed"
+    ],
+    "When_NoBoolPrefillInFailModeWithoutDefault_Then_Throws": [
+      "Passed"
+    ],
+    "When_TextPrefill_Then_ReturnsValue": [
+      "Passed"
+    ],
+    "When_NoTextPrefillWithDefault_Then_ReturnsDefault": [
+      "Passed"
+    ],
+    "When_SecretPrefill_Then_ReturnsValue": [
+      "Passed"
+    ],
+    "When_NoSecretPrefill_Then_AlwaysThrows": [
+      "Passed"
+    ],
+    "When_MultiChoicePrefill_Then_ReturnsIndices": [
+      "Passed"
+    ],
+    "When_PrefillIsInvalidBool_Then_Throws": [
+      "Passed"
+    ],
+    "When_PrefillIsNo_Then_ReturnsFalse": [
+      "Passed"
+    ],
+    "When_PrefillIsN_Then_ReturnsFalse": [
+      "Passed"
+    ],
+    "When_PrefillIsZero_Then_ReturnsFalse": [
+      "Passed"
+    ],
+    "When_PrefillIsUnambiguousPrefix_Then_ResolvesChoice": [
+      "Passed"
+    ],
+    "When_PrefillIsAmbiguousPrefix_Then_Throws": [
+      "Passed"
+    ],
+    "When_MultiChoiceTooFewSelections_Then_Throws": [
+      "Passed"
+    ],
+    "When_MultiChoiceTooManySelections_Then_Throws": [
+      "Passed"
+    ],
+    "When_ClearScreen_Then_NoOp": [
+      "Passed"
+    ],
+    "When_DispatchingBuiltInFeedbackWithoutServer_Then_Completes": [
+      "Passed"
+    ],
+    "When_DispatchingCustomRequest_Then_ThrowsNotSupported": [
+      "Passed"
+    ],
+    "When_ClientSupportsRoots_Then_RootAwareToolCanReadThem": [
+      "Passed"
+    ],
+    "When_AModernHandlerReadsCurrentWithoutAsking_Then_TheFirstCallSeesTheClientRoots": [
+      "Failed"
+    ],
+    "When_LegacyClientDoesNotSupportRoots_Then_SoftRootsCanInitializeWorkspace": [
+      "Passed"
+    ],
+    "When_ModernClientSetsSoftRoots_Then_TheyResolveWithoutChangingTheAdvertisedSet": [
+      "Passed"
+    ],
+    "When_DynamicToolCompatibilityEnabled_Then_ClientCanDiscoverAndCallThroughShim": [
+      "Passed"
+    ],
+    "When_RoutingChanges_AfterCompatibilityIntro_Then_ShimIsServedAgain": [
+      "Passed"
+    ],
+    "When_ToolsList_Then_ReturnsExpectedTools": [
+      "Passed"
+    ],
+    "When_ToolsList_Then_SchemaIsCorrect": [
+      "Passed"
+    ],
+    "When_ToolsCall_Then_ReturnsCommandOutput": [
+      "Passed"
+    ],
+    "When_ToolsCallReturnsPagedResult_Then_StructuredContentContainsPageInfo": [
+      "Passed"
+    ],
+    "When_PagedResultTextModeIsSummaryOnly_Then_RawCursorStaysOutOfText": [
+      "Passed"
+    ],
+    "When_ToolsCallReturnsPageShapedObject_Then_ResultIsPlainText": [
+      "Passed"
+    ],
+    "When_ToolsCallReturnsPageSource_Then_CursorFetchesNextPage": [
+      "Passed"
+    ],
+    "When_ContextCommands_Then_FlattenedToolNames": [
+      "Passed"
+    ],
+    "When_ToolsCallContextCommand_Then_DispatchesCorrectly": [
+      "Passed"
+    ],
+    "When_ToolHasDetails_Then_DescriptionIncludesBoth": [
+      "Passed"
+    ],
+    "When_OptionalParameter_Then_NotRequired": [
+      "Passed"
+    ],
+    "When_ReadOnlyCommand_Then_ExposedAsTool": [
+      "Passed"
+    ],
+    "When_ContextToolCallWithOptionalParams_Then_Succeeds": [
+      "Passed"
+    ],
+    "When_ContextToolCallWithoutOptionalParams_Then_Succeeds": [
+      "Passed"
+    ],
+    "When_HandlerHasFromServicesParams_Then_SchemaExcludesThem": [
+      "Passed"
+    ],
+    "When_PromptsList_Then_ReturnsPromptWithArguments": [
+      "Passed"
+    ],
+    "When_PromptsGet_Then_ReturnsHandlerOutput": [
+      "Passed"
+    ],
+    "When_PromptReturnsString_Then_TextIsPlainString": [
+      "Passed"
+    ],
+    "When_CommandOptionIsHidden_Then_McpToolSchemaOmitsIt": [
+      "Passed"
+    ],
+    "When_HiddenCommandOptionIsSuppliedToToolCall_Then_CallIsRejected": [
+      "Passed"
+    ],
+    "When_OnlyReverseAliasRemainsReachable_Then_McpOmitsTheSemanticOption": [
+      "Passed"
+    ],
+    "When_OptionCaseModeChangesAfterInitialList_Then_McpRetractsNewlyHiddenField": [
+      "Passed"
+    ],
+    "When_CommandOptionIsAutomationHidden_Then_McpOmitsItAndRejectsIt": [
+      "Passed"
+    ],
+    "When_AutomationHiddenOptionCannotBeOmitted_Then_TheToolIsWithdrawn": [
+      "Passed"
+    ],
+    "When_CommandFilterExcludesCliOnlyRequiredHiddenOption_Then_ServerStartsWithRemainingTools": [
+      "Passed"
+    ],
+    "When_CommandFilterIncludesCliOnlyRequiredHiddenOption_Then_DiscoveryRejectsIt": [
+      "Passed"
+    ],
+    "When_AutomationHiddenRequiredOptionHasAServiceFallback_Then_TheToolRemainsInvocable": [
+      "Passed"
+    ],
+    "When_HiddenGlobalOwnsRouteOptionToken_Then_McpOmitsAndRejectsThatArgument": [
+      "Passed"
+    ],
+    "When_RouteAliasIsHidden_Then_McpExposesOnlyTheCanonicalArgument": [
+      "Passed"
+    ],
+    "When_HiddenGlobalOwnsRouteCanonicalToken_Then_McpUsesTheRouteAliasWithoutRenamingTheArgument": [
+      "Passed"
+    ],
+    "When_ShadowedOptionStableNameCollidesWithRouteArgument_Then_McpStartupFailsClosed": [
+      "Passed"
+    ],
+    "When_OptionDiffersFromSyntheticCursorOnlyByCase_Then_EndToEndBindingKeepsBothDestinations": [
+      "Passed"
+    ],
+    "When_OptionDiffersFromDeclaredAnswerOnlyByCase_Then_EndToEndBindingKeepsBothDestinations": [
+      "Passed"
+    ],
+    "When_AutomationHiddenRequiredProgressUsesInteractionChannel_Then_TheToolRemainsInvocable": [
+      "Passed"
+    ],
+    "When_HiddenRequiredOptionHasNoServiceFallback_Then_McpStartupFailsFast": [
+      "Passed"
+    ],
+    "When_VisibleRequiredOptionHasAServiceFallback_Then_McpSchemaMakesItOptional": [
+      "Passed"
+    ],
+    "When_OptionIsHiddenAfterFirstToolsList_Then_SecondToolsListOmitsIt": [
+      "Passed"
+    ],
+    "When_RequiredOptionIsHiddenAfterFirstToolsList_Then_RefreshFailsClosedUntilConfigurationRecovers": [
+      "Passed"
+    ],
+    "When_CommandIsHiddenAfterFirstToolsList_Then_SecondToolsListOmitsIt": [
+      "Passed"
+    ],
+    "When_ServerStartFails_Then_FixtureSurfacesTheServerFault": [
+      "Passed"
+    ],
+    "When_OptionsGroupWithPascalCaseProperties_Then_SchemaUsesCamelCase": [
+      "Passed"
+    ],
+    "When_OptionsGroupToolCallWithCamelCaseKeys_Then_Succeeds": [
+      "Passed"
+    ],
+    "When_OptionsGroupWithExplicitOptionName_Then_SchemaUsesOverride": [
+      "Passed"
+    ],
+    "When_PromptWithOptionsGroup_Then_ArgumentNamesAreCamelCase": [
+      "Passed"
+    ],
+    "When_AppHasCommands_Then_OptionsContainToolCollection": [
+      "Passed"
+    ],
+    "When_CoreMcpOptionsHaveNoBaseProvider_Then_RequiredHiddenProgressToolIsRetained": [
+      "Passed"
+    ],
+    "When_AppHasReadOnlyCommands_Then_OptionsContainResourceCollection": [
+      "Passed"
+    ],
+    "When_OptionsUsedWithMcpServer_Then_ServerResponds": [
+      "Passed"
+    ],
+    "When_TwoConnectionsShareOneOptionsInstance_Then_CapabilitiesAreRequestScoped": [
+      "Passed"
+    ],
+    "When_TwoRootCapableClientsShareOneOptionsInstance_Then_EachSeesOwnRoots": [
+      "Passed"
+    ],
+    "When_ASecondClientReadsCurrentRoots_Then_ItDoesNotSeeTheFirstClientsRoots": [
+      "Passed"
+    ],
+    "When_OneRequestResolvesRootsTwice_Then_OnlyOneRootsListRoundTrip": [
+      "Passed"
+    ],
+    "When_ACallerCancelsWhileRootsAreOutstanding_Then_ItIsReleasedOnItsOwnToken": [
+      "Passed"
+    ],
+    "When_AUiResourceHandlerInjectsACapability_Then_ItResolvesAgainstTheCallersRequest": [
+      "Passed"
+    ],
+    "When_TheFirstRootsRequestFails_Then_ALaterCallInTheSameRequestTriesAgain": [
+      "Passed"
+    ],
+    "When_TheLastWaiterLeavesBeforeTheFetchFails_Then_ALaterCallStillRetries": [
+      "Failed"
+    ],
+    "When_ACapabilityGatedAppIsInTheCatalog_Then_TheAppsExtensionIsAdvertised": [
+      "Passed"
+    ],
+    "When_AnAppIsGatedOnAMissingCapability_Then_TheAppsExtensionIsStillAdvertised": [
+      "Passed"
+    ],
+    "When_ALegacyClientCallsAGatedToolFromTheStaticCatalog_Then_TheCommandRuns": [
+      "Failed"
+    ],
+    "When_ClearingAnEmptyCollection_Then_ChangedStillFires": [
+      "Passed"
+    ],
+    "When_LegacyClientNeverSubscribes_Then_ListChangedIsStillBroadcast": [
+      "Passed"
+    ],
+    "When_ClientOpensSubscriptionsListen_Then_ServerAcknowledges": [
+      "Failed"
+    ],
+    "When_ClientSubscribesToPromptsOnly_Then_ToolListChangedIsNotDelivered": [
+      "Failed"
+    ],
+    "When_ToolEmitsUserFeedback_Then_McpReceivesNotifications": [
+      "Passed"
+    ],
+    "When_ToolEmitsStructuredProgress_Then_McpReceivesProgressAndMessages": [
+      "Passed"
+    ],
+    "When_RequestDeclaresNoLogLevel_Then_FeedbackRidesInTheToolResultInstead": [
+      "Passed"
+    ],
+    "When_ARequestDeclaresALogLevel_Then_MessagesAtOrAboveItAreNotified": [
+      "Passed"
+    ],
+    "When_AMessageLevelIsComparedToTheProtocolLevel_Then_NameAndValueAgree": [
+      "Passed",
+      "Passed",
+      "Passed",
+      "Passed",
+      "Passed",
+      "Passed",
+      "Passed",
+      "Passed"
+    ],
+    "When_TheProtocolLevelsAreEnumerated_Then_TheyMatchMcpMessageLevel": [
+      "Passed"
+    ],
+    "When_ClientRequestsErrorLevel_Then_LowerSeveritiesAreNotNotified": [
+      "Passed"
+    ],
+    "When_APromptDeclaresNoLogLevel_Then_FeedbackRidesInThePromptResultInstead": [
+      "Passed"
+    ],
+    "When_AFailingPromptDeclaresNoLogLevel_Then_FeedbackRidesInTheError": [
+      "Passed"
+    ],
+    "When_AFailingResourceReadDeclaresNoLogLevel_Then_FeedbackRidesInTheError": [
+      "Passed"
+    ],
+    "When_ADependencyFactoryThrows_Then_ItsMessageIsWithheld": [
+      "Passed"
+    ],
+    "When_ARequiredDependencyIsMissing_Then_TheBindersDiagnosticReaches": [
+      "Passed"
+    ],
+    "When_APromptHasNoPrefill_Then_TheInstructionReachesTheClient": [
+      "Passed"
+    ],
+    "When_AnOptionsGroupSetterThrows_Then_ItsMessageIsWithheld": [
+      "Passed"
+    ],
+    "When_ADependencyFactoryCancelsItself_Then_ItsMessageIsWithheld": [
+      "Passed"
+    ],
+    "When_AnExplicitPromptReports_Then_TheFeedbackRidesInTheResult": [
+      "Failed"
+    ],
+    "When_AnExplicitPromptReportsBesideMetadata_Then_TheWholeResultSurvives": [
+      "Failed"
+    ],
+    "When_TheSdkPromptResultCarriesAField_Then_TheWrapperCopiesIt": [
+      "Passed"
+    ],
+    "When_AnExplicitPromptReadsRoots_Then_TheyAreResolved": [
+      "Failed"
+    ],
+    "When_AResourceHandlerThrows_Then_TheExceptionTextIsWithheld": [
+      "Passed"
+    ],
+    "When_AToolHandlerThrows_Then_TheExceptionTextIsWithheld": [
+      "Passed"
+    ],
+    "When_AHandlerReturnsAFailure_Then_ItsOwnTextStillReaches": [
+      "Passed"
+    ]
+  }
+}

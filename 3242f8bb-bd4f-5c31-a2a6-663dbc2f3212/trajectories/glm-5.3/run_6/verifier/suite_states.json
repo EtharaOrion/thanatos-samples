@@ -1,0 +1,14 @@
+{
+  "direnv_cmd_version_test": "passed",
+  "direnv_deps_test": "failed",
+  "direnv_dotenv_parse_test": "failed",
+  "direnv_env_diff_test": "failed",
+  "direnv_env_test": "failed",
+  "direnv_packages_test": "failed",
+  "direnv_rc_test": "passed",
+  "direnv_shell_systemd_test": "passed",
+  "direnv_shell_test": "passed",
+  "direnv_shells_test": "failed",
+  "direnv_sri_test": "failed",
+  "direnv_lifecycle": "passed"
+}

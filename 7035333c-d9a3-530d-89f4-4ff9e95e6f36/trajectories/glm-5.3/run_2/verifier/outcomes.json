@@ -1,0 +1,166 @@
+{
+  "protocol_revisions": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 4,
+    "cases": 4
+  },
+  "capability_binding": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 2,
+    "cases": 2
+  },
+  "roots_isolation": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 4,
+    "cases": 4
+  },
+  "notification_lifetime": {
+    "passed": false,
+    "failed_methods": [
+      "When_ClientSubscribesToPromptsOnly_Then_ToolListChangedIsNotDelivered"
+    ],
+    "methods": 4,
+    "cases": 4
+  },
+  "modern_state_invariance": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 2,
+    "cases": 2
+  },
+  "modern_capability_discovery": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 4,
+    "cases": 4
+  },
+  "advertised_execution": {
+    "passed": false,
+    "failed_methods": [
+      "When_AModernClientCallsACapabilityGatedTool_Then_TheCommandRuns",
+      "When_AModernClientAnswersAGateItIsGatedOn_Then_ItsAnswerCannotRetractTheTool",
+      "When_ALegacyClientCallsAGatedToolFromTheStaticCatalog_Then_TheCommandRuns"
+    ],
+    "methods": 4,
+    "cases": 4
+  },
+  "launch_globals_and_cleanup": {
+    "passed": false,
+    "failed_methods": [
+      "When_AModernClientCallsAToolGatedOnALaunchGlobal_Then_TheCommandRuns"
+    ],
+    "methods": 2,
+    "cases": 2
+  },
+  "catalog_rebuild_retry": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 1,
+    "cases": 1
+  },
+  "legacy_dynamic_catalog": {
+    "passed": false,
+    "failed_methods": [
+      "When_LegacySessionsShareAGatedGraph_Then_EachSeesItsOwnTools"
+    ],
+    "methods": 3,
+    "cases": 3
+  },
+  "bootstrap_and_request_era": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 4,
+    "cases": 4
+  },
+  "concurrent_output": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 2,
+    "cases": 2
+  },
+  "roots_coalescing": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 2,
+    "cases": 2
+  },
+  "roots_invalidation": {
+    "passed": false,
+    "failed_methods": [
+      "When_AnInFlightFetchIsRetired_Then_TheDirectWaiterIsNotHandedIt"
+    ],
+    "methods": 3,
+    "cases": 3
+  },
+  "roots_failure_retry": {
+    "passed": false,
+    "failed_methods": [
+      "When_AConnectionScopedFetchFails_Then_TheNextCallerReachesTheClientAgain",
+      "When_TheNativeFetchFails_Then_CurrentFallsBackToSoftRoots"
+    ],
+    "methods": 4,
+    "cases": 4
+  },
+  "roots_cancellation": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 1,
+    "cases": 1
+  },
+  "feedback_routing": {
+    "passed": false,
+    "failed_methods": [
+      "When_ARequestDeclaresALogLevel_Then_MessagesAtOrAboveItAreNotified",
+      "When_ToolEmitsStructuredProgress_Then_McpReceivesProgressAndMessages"
+    ],
+    "methods": 5,
+    "cases": 5
+  },
+  "prompt_and_resource_feedback": {
+    "passed": false,
+    "failed_methods": [
+      "When_ARawUiResourceReportsThenFails_Then_TheFeedbackRidesInTheError"
+    ],
+    "methods": 7,
+    "cases": 7
+  },
+  "exception_privacy": {
+    "passed": false,
+    "failed_methods": [
+      "When_ARequiredDependencyIsMissing_Then_TheBindersDiagnosticReaches",
+      "When_ARawUiResourceReportsThenFails_Then_TheHandlersOwnMessageIsWithheld"
+    ],
+    "methods": 10,
+    "cases": 10
+  },
+  "explicit_prompt_metadata": {
+    "passed": false,
+    "failed_methods": [
+      "When_AnExplicitPromptReports_Then_TheFeedbackRidesInTheResult",
+      "When_AnExplicitPromptReportsBesideMetadata_Then_TheWholeResultSurvives",
+      "When_AnExplicitPromptReadsRoots_Then_TheyAreResolved",
+      "When_APromptHasNoPrefill_Then_TheInstructionReachesTheClient"
+    ],
+    "methods": 5,
+    "cases": 5
+  },
+  "apps_discovery_and_context": {
+    "passed": false,
+    "failed_methods": [
+      "When_AnAppIsGatedOnAMissingCapability_Then_TheAppsExtensionIsStillAdvertised",
+      "When_AnAppRegistrationIsShadowed_Then_TheAppsExtensionIsStillAdvertised",
+      "When_AnAppIsGatedOnTheRootsData_Then_TheAppsExtensionIsStillAdvertised"
+    ],
+    "methods": 6,
+    "cases": 6
+  },
+  "preserved_mcp_behavior": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 139,
+    "cases": 146
+  }
+}

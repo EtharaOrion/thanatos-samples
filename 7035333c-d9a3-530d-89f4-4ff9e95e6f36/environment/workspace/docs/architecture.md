@@ -1,0 +1,133 @@
+# REPL Toolkit Architecture Blueprint
+
+## Project boundaries
+
+- `Repl.Core`
+ 	- Dependency-free authoring/runtime core (`CoreReplApp`, `IReplMap`, `ReplOptions`, `Results.*`).
+ 	- Keeps host/runtime-neutral abstractions.
+- `Repl.Defaults`
+ 	- DI-enabled app facade (`ReplApp`), lifecycle orchestration, and default composition profiles (`UseDefaultInteractive`, `UseCliProfile`, `UseEmbeddedConsoleProfile`).
+- `Repl`
+ 	- Meta-package entrypoint for typical apps (depends on `Repl.Core`, `Repl.Defaults`, `Repl.Protocol`).
+- `Repl.Protocol`
+ 	- Machine-readable contracts for protocol/tooling use cases:
+  		- Help and error contracts.
+  		- Minimal MCP-oriented manifest/tool/resource contracts (extension-ready, not runtime MCP mode).
+- `Repl.WebSocket`
+ 	- WebSocket session host integration (`ReplWebSocketSession`) over `StreamedReplHost`.
+- `Repl.Telnet`
+ 	- Telnet framing/session integration (`ReplTelnetSession`) with NAWS window-size negotiation.
+- `Repl.Spectre`
+ 	- Spectre.Console integration: `SpectreInteractionHandler` for rich prompts, `IAnsiConsole` DI injection, `"spectre"` output transformer for auto-rendered tables, `SpectreConsoleOptions` for capability configuration.
+- `Repl.Mcp`
+  - MCP (Model Context Protocol) integration: `UseMcpServer()`, `BuildMcpServerOptions()`, tool/resource/prompt mapping, MCP Apps UI resources, client roots, transport factory.
+- `Repl.Testing`
+  - In-memory multi-session testing toolkit (`ReplTestHost`, `ReplSessionHandle`, typed execution results/events),
+    plus process-signal testing: `ReplProcessSignalHarness` drives the lifecycle in memory for any
+    declared platform, and `ReplProcessProbe` spawns an application for what only a real process shows.
+    See [Testing toolkit](testing-toolkit.md#process-signals).
+- `Repl.Tests`
+ 	- Unit tests for pure logic and contracts.
+- `Repl.IntegrationTests`
+ 	- End-to-end runtime behavior at process/app boundary.
+- `Repl.ProtocolTests`
+ 	- Contract tests for machine-readable help/error payloads.
+- `Repl.McpTests`
+  - Tests for MCP server options, tool/resource/prompt/app mapping, and transport integration.
+- `Repl.SpectreTests`
+ 	- Tests for Spectre.Console integration.
+- `Repl.ShellCompletionTestHost`
+ 	- Test host process for validating shell completion scripts.
+
+## Upgrading the packages together
+
+`Repl.Defaults` calls into `Repl.Core` at a version-matched surface, so the two must be upgraded
+together. A previously compiled `Repl.Defaults` keeps working against a newer `Repl.Core` — historical
+descriptors are preserved as distinct overloads rather than folded into defaulted parameters — but the
+reverse is not guaranteed: a release's `Repl.Defaults` may call APIs that only exist in the same
+release's `Repl.Core`. Upgrading one and pinning the other is unsupported. The `Repl` meta-package
+takes both at matched versions, which is the reason to prefer it.
+
+`Repl.Testing` belongs to that same set. It drives the signal coordinators and the session sink through
+internals both assemblies grant it, so it is version-matched to them too — a newer `Repl.Testing`
+against an older `Repl.Core` or `Repl.Defaults` is unsupported for the same reason.
+
+## Quality gates
+
+- Strict build rules from `src/Directory.Build.props`:
+ 	- warnings as errors
+ 	- deterministic build
+ 	- nullable enabled
+ 	- analyzers enabled
+- Central package versions in `src/Directory.Packages.props`.
+- CI restore/build/test/coverage/pack pipeline in `.github/workflows/ci.yml`.
+ 	- Build/test validation runs on Linux and macOS.
+- CI restore audit guard in `src/Directory.Solution.targets`.
+
+## Test conventions
+
+- Framework:
+ 	- `MSTest.Sdk` with Microsoft Testing Platform (`global.json`).
+ 	- `AwesomeAssertions` for fluent assertions.
+- Naming:
+ 	- Test classes: `Given_<Subject>`
+ 	- Test methods: `When_<Condition>_Then_<Outcome>`
+- Style:
+ 	- AAA structure (arrange/act/assert) kept explicit in each test.
+ 	- Every test uses `[Description("...")]` to capture behavioral intent (regression guard), not method-name restatement.
+
+## Runtime highlights implemented
+
+- Output transformers:
+ 	- Built-in `human`, `json`, `xml`, `yaml`.
+ 	- Built-in `markdown` (with `--markdown` alias via output alias map).
+ 	- Global format selectors: `--json`, `--xml`, `--yaml`, `--yml`, `--output:<format>`.
+ 	- Unknown format returns explicit error text and non-zero exit code.
+- Result flow:
+ 	- `IReplPagingContext` lets handlers page at the data source.
+ 	- `ReplPage<T>` carries current-page data plus continuation metadata.
+ 	- Human/Spectre terminal output can use an integrated pager; redirected stdout remains pipe-friendly.
+ 	- MCP maps `_replCursor` and `_replPageSize` to structured paged tool results.
+- Numeric parsing:
+ 	- Numeric culture is configurable via `ParsingOptions.NumericCulture` (`Invariant` default, `Current` optional).
+ 	- Integer literals support C-like forms: hexadecimal (`0xFF`), binary (`0b1010` or `1010b`), and `_` separators (`1_000_000`).
+- Help/discovery:
+ 	- Human help (`--help` or interactive `help`) remains text-first.
+ 	- Non-human help output (`--help --json|--xml|--yaml`) now emits structured machine-readable payloads.
+- Terminal/session metadata:
+ 	- Supported metadata channels and field-level resolution order are documented in `docs/terminal-metadata.md`.
+ 	- Transport-native signaling (DTTERM push, Telnet NAWS/TERMINAL-TYPE) is preferred.
+ 	- `@@repl:*` control messages and out-of-band metadata are supported extension patterns.
+
+## CoreReplApp vs ReplApp
+
+The toolkit provides two application entry points for different scenarios.
+
+**CoreReplApp** (`Repl.Core`)
+
+- Zero external dependencies — pure .NET
+- No built-in DI container, no interactive defaults
+- Best for: libraries, embedded REPL, test harnesses, or apps that manage DI externally
+- Internally uses `ScopedMap` to implement nested contexts (each `Context()` call creates a scoped map that prefixes routes with the context path)
+
+**ReplApp** (`Repl.Defaults`)
+
+- Wraps `CoreReplApp` with `Microsoft.Extensions.DependencyInjection`
+- Provides `UseDefaultInteractive()`, `UseCliProfile()`, and other composition profiles
+- Lazily builds a shared `ServiceProvider` for module resolution and handler injection
+- Best for: standalone CLI/REPL applications with service layers
+
+**`InvalidateRouting()`** — call this when module presence conditions may have changed at runtime (e.g., feature flags toggled, dynamic module discovery). Increments the routing cache version so the next execution re-evaluates all module presence predicates.
+
+## Related docs
+
+- Command reference: `docs/commands.md`
+- Result flow and paging: `docs/result-flow.md`
+- Parameter system: `docs/parameter-system.md`
+- Shell completion: `docs/shell-completion.md`
+
+## Branching and versioning
+
+- NBGV (`version.json`) drives package/release versioning.
+- `main` publishes prerelease.
+- `release/*` publishes stable.

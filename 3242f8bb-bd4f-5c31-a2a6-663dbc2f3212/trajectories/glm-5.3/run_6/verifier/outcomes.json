@@ -1,0 +1,74 @@
+{
+  "direnv_cmd_version_test": {
+    "passed": true,
+    "native_passed": 1,
+    "minimum_tests": 1,
+    "exit_code": 0
+  },
+  "direnv_deps_test": {
+    "passed": false,
+    "native_passed": 12,
+    "minimum_tests": 18,
+    "exit_code": 101
+  },
+  "direnv_dotenv_parse_test": {
+    "passed": false,
+    "native_passed": 12,
+    "minimum_tests": 14,
+    "exit_code": 101
+  },
+  "direnv_env_diff_test": {
+    "passed": false,
+    "native_passed": 4,
+    "minimum_tests": 5,
+    "exit_code": 101
+  },
+  "direnv_env_test": {
+    "passed": false,
+    "native_passed": 2,
+    "minimum_tests": 3,
+    "exit_code": 101
+  },
+  "direnv_packages_test": {
+    "passed": false,
+    "native_passed": 4,
+    "minimum_tests": 7,
+    "exit_code": 101
+  },
+  "direnv_rc_test": {
+    "passed": true,
+    "native_passed": 1,
+    "minimum_tests": 1,
+    "exit_code": 0
+  },
+  "direnv_shell_systemd_test": {
+    "passed": true,
+    "native_passed": 3,
+    "minimum_tests": 3,
+    "exit_code": 0
+  },
+  "direnv_shell_test": {
+    "passed": true,
+    "native_passed": 2,
+    "minimum_tests": 2,
+    "exit_code": 0
+  },
+  "direnv_shells_test": {
+    "passed": false,
+    "native_passed": 16,
+    "minimum_tests": 19,
+    "exit_code": 101
+  },
+  "direnv_sri_test": {
+    "passed": false,
+    "native_passed": 3,
+    "minimum_tests": 4,
+    "exit_code": 101
+  },
+  "direnv_lifecycle": {
+    "passed": true,
+    "native_passed": 3,
+    "minimum_tests": 3,
+    "exit_code": 0
+  }
+}

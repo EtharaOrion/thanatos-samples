@@ -1,0 +1,48 @@
+schema_version = "1.4"
+[task]
+name = "yllibed/repl-mcp-sdk-2"
+version = "1.0.0"
+uuid_v5 = "7035333c-d9a3-530d-89f4-4ff9e95e6f36"
+authors = [{ name = "Abhishek Mishra", email = "abhishek.mishra@ethara.ai" }]
+description = "Migrate Repl MCP SDK1.4.1 to2.2.0 with dual-era protocol semantics, concurrent client isolation, roots caching and feedback privacy"
+keywords = ["csharp", "dotnet", "protocol-migration", "mcp", "concurrency"]
+[metadata]
+category = "framework"
+repo = "https://github.com/yllibed/repl"
+pull_request = "https://github.com/yllibed/repl/pull/71"
+base_commit = "a04f10b0e2c2ee68debb913d01aab702719d43f4"
+reference_commit = "bb56e2d2ca6f9c8ffe81106280f0bd643cfbe4b1"
+evaluation_version = "mcp-dual-era-native-2026-09-24"
+[verifier]
+repository_test_policy = "migratable"
+environment_mode = "separate"
+timeout_sec = 5400
+network_mode = "allowlist"
+allowed_hosts = ["127.0.0.1", "api.openai.com"]
+
+[verifier.environment]
+# Prebuilt grader image built from tests/Dockerfile (pinned by pin_grader.py).
+docker_image = "426628337772.dkr.ecr.ap-south-1.amazonaws.com/thanatos-envs@sha256:73c2089824dae7e3ce3b4634b2b9456b816da9b4f48ebaf58992d843f3057e1c"
+network_mode = "allowlist"
+allowed_hosts = ["127.0.0.1", "api.openai.com"]
+
+[agent]
+timeout_sec = 21600
+network_mode = "allowlist"
+allowed_hosts = ["127.0.0.1"]
+[environment]
+docker_image = "426628337772.dkr.ecr.ap-south-1.amazonaws.com/thanatos-envs@sha256:77e9488af944fe5cd7c7a64d0fab51916d9b61adae9460f3f4739aa8bde82529"
+build_timeout_sec = 1800
+cpus = 4
+memory_mb = 8192
+storage_mb = 15360
+network_mode = "allowlist"
+allowed_hosts = ["127.0.0.1"]
+
+# The agent's delivered code, and its logs (for the process rubric), copied into the grader.
+[[artifacts]]
+source = "/workspace"
+exclude = ["bin", "obj", "TestResults"]
+
+[[artifacts]]
+source = "/logs/agent"

@@ -1,0 +1,185 @@
+{
+  "protocol_revisions": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 4,
+    "cases": 4
+  },
+  "capability_binding": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 2,
+    "cases": 2
+  },
+  "roots_isolation": {
+    "passed": false,
+    "failed_methods": [
+      "When_TwoRootCapableClientsShareHandler_Then_EachSeesOwnRoots",
+      "When_AModernHandlerReadsCurrentWithoutAsking_Then_TheFirstCallSeesTheClientRoots"
+    ],
+    "methods": 4,
+    "cases": 4
+  },
+  "notification_lifetime": {
+    "passed": false,
+    "failed_methods": [
+      "When_FirstSessionCloses_Then_SurvivingSessionStillReceivesRoutingNotifications",
+      "When_ClientSubscribesToPromptsOnly_Then_ToolListChangedIsNotDelivered"
+    ],
+    "methods": 4,
+    "cases": 4
+  },
+  "modern_state_invariance": {
+    "passed": false,
+    "failed_methods": [
+      "When_AModernToolMutatesSessionState_Then_TheAdvertisedSetDoesNotChange"
+    ],
+    "methods": 2,
+    "cases": 2
+  },
+  "modern_capability_discovery": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 4,
+    "cases": 4
+  },
+  "advertised_execution": {
+    "passed": false,
+    "failed_methods": [
+      "When_AModernClientCallsACapabilityGatedTool_Then_TheCommandRuns",
+      "When_AModernClientAnswersAGateItIsGatedOn_Then_ItsAnswerCannotRetractTheTool",
+      "When_ALegacyClientCallsAGatedToolFromTheStaticCatalog_Then_TheCommandRuns"
+    ],
+    "methods": 4,
+    "cases": 4
+  },
+  "launch_globals_and_cleanup": {
+    "passed": false,
+    "failed_methods": [
+      "When_AModernClientCallsAToolGatedOnALaunchGlobal_Then_TheCommandRuns",
+      "When_AToolCallCompletes_Then_ItsSessionRegistrationIsReleased"
+    ],
+    "methods": 2,
+    "cases": 2
+  },
+  "catalog_rebuild_retry": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 1,
+    "cases": 1
+  },
+  "legacy_dynamic_catalog": {
+    "passed": false,
+    "failed_methods": [
+      "When_LegacySessionsShareAGatedGraph_Then_EachSeesItsOwnTools"
+    ],
+    "methods": 3,
+    "cases": 3
+  },
+  "bootstrap_and_request_era": {
+    "passed": false,
+    "failed_methods": [
+      "When_ShimEnabledAndTwoLegacySessionsList_Then_EachSessionGetsTheIntro"
+    ],
+    "methods": 4,
+    "cases": 4
+  },
+  "concurrent_output": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 2,
+    "cases": 2
+  },
+  "roots_coalescing": {
+    "passed": false,
+    "failed_methods": [
+      "When_TwoFirstCallsRaceOnOneConnection_Then_TheyShareOneRootsRoundTrip"
+    ],
+    "methods": 2,
+    "cases": 2
+  },
+  "roots_invalidation": {
+    "passed": false,
+    "failed_methods": [
+      "When_RootsAreInvalidatedWhileTheFetchIsUnanswered_Then_TheLateAnswerIsNotCached",
+      "When_AnInFlightFetchIsRetired_Then_TheDirectWaiterIsNotHandedIt"
+    ],
+    "methods": 3,
+    "cases": 3
+  },
+  "roots_failure_retry": {
+    "passed": false,
+    "failed_methods": [
+      "When_AConnectionScopedFetchFails_Then_TheNextCallerReachesTheClientAgain",
+      "When_TheNativeFetchFails_Then_CurrentFallsBackToSoftRoots",
+      "When_TheLastWaiterLeavesBeforeTheFetchFails_Then_ALaterCallStillRetries"
+    ],
+    "methods": 4,
+    "cases": 4
+  },
+  "roots_cancellation": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 1,
+    "cases": 1
+  },
+  "feedback_routing": {
+    "passed": true,
+    "failed_methods": [],
+    "methods": 5,
+    "cases": 5
+  },
+  "prompt_and_resource_feedback": {
+    "passed": false,
+    "failed_methods": [
+      "When_AFailingPromptDeclaresNoLogLevel_Then_FeedbackRidesInTheError",
+      "When_AFailingResourceReadDeclaresNoLogLevel_Then_FeedbackRidesInTheError",
+      "When_AFailingUiResourceReadEmitsFeedback_Then_ItRidesInTheError",
+      "When_ARawUiResourceReportsThenCancelsItself_Then_TheFeedbackStillRides"
+    ],
+    "methods": 7,
+    "cases": 7
+  },
+  "exception_privacy": {
+    "passed": false,
+    "failed_methods": [
+      "When_ADependencyFactoryThrows_Then_ItsMessageIsWithheld",
+      "When_AnOptionsGroupSetterThrows_Then_ItsMessageIsWithheld",
+      "When_ADependencyFactoryCancelsItself_Then_ItsMessageIsWithheld",
+      "When_AResourceHandlerThrows_Then_TheExceptionTextIsWithheld",
+      "When_AToolHandlerThrows_Then_TheExceptionTextIsWithheld",
+      "When_ACommandBackedAppFails_Then_FeedbackRidesAndTheDetailIsWithheld",
+      "When_ARawUiResourceReportsThenRaisesAnMcpException_Then_ItsMessageSurvives"
+    ],
+    "methods": 10,
+    "cases": 10
+  },
+  "explicit_prompt_metadata": {
+    "passed": false,
+    "failed_methods": [
+      "When_AnExplicitPromptReports_Then_TheFeedbackRidesInTheResult",
+      "When_AnExplicitPromptReportsBesideMetadata_Then_TheWholeResultSurvives",
+      "When_AnExplicitPromptReadsRoots_Then_TheyAreResolved"
+    ],
+    "methods": 5,
+    "cases": 5
+  },
+  "apps_discovery_and_context": {
+    "passed": false,
+    "failed_methods": [
+      "When_ACapabilityGatedAppIsInTheCatalog_Then_TheAppsExtensionIsAdvertised",
+      "When_AnAppIsGatedOnTheRootsData_Then_TheAppsExtensionIsStillAdvertised",
+      "When_ARawUiResourceReadsCurrentRoots_Then_TheFirstReadSeesThem"
+    ],
+    "methods": 6,
+    "cases": 6
+  },
+  "preserved_mcp_behavior": {
+    "passed": false,
+    "failed_methods": [
+      "When_ShadowedOptionStableNameCollidesWithRouteArgument_Then_McpStartupFailsClosed"
+    ],
+    "methods": 139,
+    "cases": 146
+  }
+}

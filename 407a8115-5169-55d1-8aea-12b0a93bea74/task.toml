@@ -1,0 +1,48 @@
+schema_version = "1.4"
+[task]
+name = "twentyhq/twenty-cookie-sessions"
+version = "1.0.4"
+uuid_v5 = "407a8115-5169-55d1-8aea-12b0a93bea74"
+authors = [{ name = "Abhishek Mishra", email = "abhishek.mishra@ethara.ai" }]
+description = "Migrate browser JWT storage to persisted cookie sessions across PostgreSQL, Redis, HTTP, React/Apollo and SSE"
+keywords = ["typescript", "authentication", "database", "concurrency", "react"]
+[metadata]
+category = "framework"
+repo = "https://github.com/twentyhq/twenty"
+pull_request = "https://github.com/twentyhq/twenty/pull/23642"
+base_commit = "f8e3fd110d35778bef7341ef563c2607d065bd2e"
+reference_commit = "267ecb12db90c003abbbfb23a16114747a460203"
+evaluation_version = "persisted-cookie-sessions-2026-09-24"
+[verifier]
+repository_test_policy = "migratable"
+environment_mode = "separate"
+timeout_sec = 6000
+network_mode = "allowlist"
+allowed_hosts = ["127.0.0.1", "api.openai.com"]
+
+[verifier.environment]
+# Prebuilt grader image built from tests/Dockerfile (pinned by pin_grader.py).
+docker_image = "426628337772.dkr.ecr.ap-south-1.amazonaws.com/thanatos-envs@sha256:41472e611a8f9180e3def8645b750b220dcc43994195e3c6ec84ce57d0190111"
+network_mode = "allowlist"
+allowed_hosts = ["127.0.0.1", "api.openai.com"]
+
+[agent]
+timeout_sec = 21600
+network_mode = "allowlist"
+allowed_hosts = ["127.0.0.1"]
+[environment]
+docker_image = "426628337772.dkr.ecr.ap-south-1.amazonaws.com/thanatos-envs@sha256:803cb98fdadd11071b4e17129f2f9109a9da7d6192c499633bd8ff2ab6310b03"
+build_timeout_sec = 3600
+cpus = 4
+memory_mb = 24576
+storage_mb = 20480
+network_mode = "allowlist"
+allowed_hosts = ["127.0.0.1"]
+
+# The agent's delivered code, and its logs (for the process rubric), copied into the grader.
+[[artifacts]]
+source = "/workspace"
+exclude = ["node_modules", "dist", ".nx"]
+
+[[artifacts]]
+source = "/logs/agent"

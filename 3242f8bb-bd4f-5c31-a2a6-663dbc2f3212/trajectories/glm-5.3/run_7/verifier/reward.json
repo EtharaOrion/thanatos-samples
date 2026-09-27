@@ -1,0 +1,14 @@
+{
+  "score": 0.4166666666666667,
+  "reward": 0.4166666666666667,
+  "graded": true,
+  "weight_earned": 5,
+  "weight_total": 12,
+  "weight_penalty": 0.0,
+  "passed_groups": 5,
+  "total_groups": 12,
+  "rubric": 0.7647058823529411,
+  "rubric_cq": 0.5,
+  "rubric_if": 1.0,
+  "rubric_process": 0.8571428571428571
+}

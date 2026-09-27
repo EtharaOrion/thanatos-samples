@@ -1,0 +1,49 @@
+schema_version = "1.4"
+[task]
+name = "hard-migrations/3242f8bb-bd4f-5c31-a2a6-663dbc2f3212"
+version = "2.2.2"
+description = "Complete direnv Rust migration with frozen behavioral conformance"
+uuid_v5 = "3242f8bb-bd4f-5c31-a2a6-663dbc2f3212"
+authors = [{ name = "Abhishek Mishra", email = "abhishek.mishra@ethara.ai" }]
+[metadata]
+evaluation_version = "instruction-grounded-v4-libcfix"
+difficulty = "expert"
+category = "language"
+uuid = "3242f8bb-bd4f-5c31-a2a6-663dbc2f3212"
+repo = "https://github.com/Zahgon/direnv"
+base_commit = "b00e451f547f39be7ab836d969054114a465a0f9"
+golden_commit = "ffec0a00bebec3380cc963f21206caba377bb01d"
+calibration_status = "reference-validated-12-of-12"
+[verifier]
+repository_test_policy = "migratable"
+timeout_sec = 18000
+environment_mode = "separate"
+network_mode = "allowlist"
+allowed_hosts = ["127.0.0.1", "api.openai.com"]
+
+[verifier.environment]
+# Prebuilt grader image built from tests/Dockerfile (pinned by pin_grader.py).
+docker_image = "426628337772.dkr.ecr.ap-south-1.amazonaws.com/thanatos-envs@sha256:98242b6feff882e397bbca36102bfce142daed9dfc794282a7c1cad48ecfd7e0"
+network_mode = "allowlist"
+allowed_hosts = ["127.0.0.1", "api.openai.com"]
+
+[agent]
+timeout_sec = 86400
+network_mode = "allowlist"
+allowed_hosts = ["127.0.0.1"]
+[environment]
+docker_image = "426628337772.dkr.ecr.ap-south-1.amazonaws.com/thanatos-envs@sha256:68fbc9ed277dc73fafb58bf7e908f620d677dd41783d4947a8e11dc910c2ddfd"
+build_timeout_sec = 3600
+cpus = 4
+memory_mb = 8192
+storage_mb = 20480
+network_mode = "allowlist"
+allowed_hosts = ["127.0.0.1"]
+
+# The agent's delivered code, and its logs (for the process rubric), copied into the grader.
+[[artifacts]]
+source = "/workspace"
+exclude = ["target"]
+
+[[artifacts]]
+source = "/logs/agent"

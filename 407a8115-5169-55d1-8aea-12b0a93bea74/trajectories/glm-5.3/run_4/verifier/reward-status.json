@@ -1,0 +1,10 @@
+{
+  "status": "graded",
+  "rubric": {
+    "rubric": 0.7647058823529411,
+    "rubric_if": 1.0,
+    "rubric_cq": 0.5714285714285714,
+    "rubric_process": 0.8571428571428571
+  },
+  "note": "Group C16 and C13 outcomes are timing-dependent on this delivery. Six gradings of the identical delivered code: 6/16 four times (task versions 1.0.3 and 1.0.4, regrade repeats 1 and 2), 7/16 twice (C16 passed once, C13 passed once). The representative 6/16 (repeat 2, identical group outcomes to the published grade) is reported; the rubric comes from the full regrade of the same delivery."
+}

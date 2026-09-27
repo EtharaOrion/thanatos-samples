@@ -1,0 +1,72 @@
+{
+  "classification": "native_behavior",
+  "native_groups_executed": 16,
+  "native_groups_passed": 6,
+  "frontend_environment": "Node-hosted JSDOM, real local HTTP, submitted Apollo/React/Jotai",
+  "outcomes": {
+    "C01": {
+      "passed": true,
+      "title": "C01 opaque persisted sessions and scope"
+    },
+    "C02": {
+      "passed": true,
+      "title": "C02 renewal reuse and sign-in replacement"
+    },
+    "C03": {
+      "passed": true,
+      "title": "C03 absolute and idle expiry across cache paths"
+    },
+    "C04": {
+      "passed": false,
+      "title": "C04 short idle activity touch cannot revive revoked sessions"
+    },
+    "C05": {
+      "passed": false,
+      "title": "C05 scoped revocation and healthy cache invalidation"
+    },
+    "C06": {
+      "passed": false,
+      "title": "C06 deterministic revoke versus Redis fill races"
+    },
+    "C07": {
+      "passed": true,
+      "title": "C07 refresh revocation survives session failure and verifies JWT"
+    },
+    "C08": {
+      "passed": false,
+      "title": "C08 real HTTP CSRF request-origin matrix"
+    },
+    "C09": {
+      "passed": false,
+      "title": "C09 issuance origin policy, cookie attributes and feature-off"
+    },
+    "C10": {
+      "passed": false,
+      "title": "C10 impersonation preserves only the matching live original credential"
+    },
+    "C15": {
+      "passed": true,
+      "title": "C15 submitted schema migration is repeatable and enforces data integrity"
+    },
+    "C16": {
+      "passed": false,
+      "title": "C16 request authentication accepts cookies but refuses opaque bearer tokens"
+    },
+    "C11": {
+      "passed": false,
+      "title": "C11 browser bridge clears local credentials only after real cookie authentication"
+    },
+    "C12": {
+      "passed": false,
+      "title": "C12 browser retry, pending sign-out and feature-off behavior"
+    },
+    "C13": {
+      "passed": false,
+      "title": "C13 submitted Apollo transport preserves deliberate headerless probes"
+    },
+    "C14": {
+      "passed": true,
+      "title": "C14 submitted SSE reconnect preserves cookie-only credentials"
+    }
+  }
+}

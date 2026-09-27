@@ -1,0 +1,1 @@
+{"score": 0.5909090909090909, "reward": 0.5909090909090909, "graded": true, "status": "graded", "weight_earned": 13, "weight_total": 22, "weight_penalty": 0.0, "passed_groups": 13, "total_groups": 22}
