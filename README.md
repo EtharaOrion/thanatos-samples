@@ -103,7 +103,8 @@ thanatos-samples/
     ├── task.toml                    # schema_version 1.4 on all 3: [task] name/version/description/
     │                                # uuid_v5/authors, [metadata], and [verifier]/[agent]/[environment] config
     ├── instruction.md               # the verbatim prompt handed to the agent
-    ├── environment/                 # Dockerfile (digest-pinned) + workspace, plus per-task build inputs
+    ├── environment/                 # Dockerfile naming the pinned prebuilt image, which already holds
+    │                                # the repository at /workspace
     ├── solution/                    # fix.patch, solve.sh, TRUTH.md (human-written reference notes)
     ├── tests/                       # test.sh, test_outputs.py, score_tests.py, config.json,
     │                                # test_weights.json, and the task's rubric file

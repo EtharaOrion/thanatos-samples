@@ -2,7 +2,7 @@
 
 ## Provenance
 
-This is the private golden-trajectory projection for bundle `3242f8bb-bd4f-5c31-a2a6-663dbc2f3212`, the Go to Rust migration of `Zahgon/direnv` from base commit `b00e451f547f39be7ab836d969054114a465a0f9` to golden commit `ffec0a00bebec3380cc963f21206caba377bb01d`. It is derived from frozen bundle bytes alone: `instruction.md`, `task.toml`, `tests/test_weights.json`, `tests/config.json`, `tests/score_tests.py`, `tests/test_outputs.py`, `tests/rubrics.json`, `environment/workspace/TARGET_API.md`, and `solution/fix.patch`. It records the reference route through the task and the checker identifier each step discharges.
+This is the private golden-trajectory projection for bundle `3242f8bb-bd4f-5c31-a2a6-663dbc2f3212`, the Go to Rust migration of `Zahgon/direnv` from base commit `b00e451f547f39be7ab836d969054114a465a0f9` to golden commit `ffec0a00bebec3380cc963f21206caba377bb01d`. It is derived from frozen bundle bytes alone: `instruction.md`, `task.toml`, `tests/test_weights.json`, `tests/config.json`, `tests/score_tests.py`, `tests/test_outputs.py`, `tests/rubrics.json`, `/workspace/TARGET_API.md`, and `solution/fix.patch`. It records the reference route through the task and the checker identifier each step discharges.
 
 This file is private. `tests/test_outputs.py` copies the candidate workspace into a private subject tree and materialises the frozen suite separately, so nothing here reaches the agent under test. `instruction.md` states that the verifier uses independent frozen integration tests rather than tests the candidate adds or edits, so no value stated here may be restated on the agent-visible surface.
 
