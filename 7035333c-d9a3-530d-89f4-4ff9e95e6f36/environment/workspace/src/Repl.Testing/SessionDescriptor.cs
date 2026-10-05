@@ -1,0 +1,78 @@
+namespace Repl.Testing;
+
+/// <summary>
+/// Logical metadata used to shape a simulated session.
+/// </summary>
+public sealed record SessionDescriptor
+{
+	/// <summary>
+	/// Optional transport name override (for example websocket, telnet, signalr).
+	/// </summary>
+	public string? TransportName { get; init; }
+
+	/// <summary>
+	/// Optional remote endpoint description.
+	/// </summary>
+	public string? RemotePeer { get; init; }
+
+	/// <summary>
+	/// Optional terminal identity override.
+	/// </summary>
+	public string? TerminalIdentity { get; init; }
+
+	/// <summary>
+	/// Optional terminal window size override.
+	/// </summary>
+	public (int Width, int Height)? WindowSize { get; init; }
+
+	/// <summary>
+	/// Optional ANSI support override.
+	/// </summary>
+	public bool? AnsiSupported { get; init; }
+
+	/// <summary>
+	/// Optional capability override.
+	/// </summary>
+	public TerminalCapabilities? TerminalCapabilities { get; init; }
+
+	/// <summary>
+	/// Optional prefilled answers applied to every command in the session.
+	/// Per-command answers passed to <c>RunCommandAsync</c> override session-level values
+	/// for the same prompt name.
+	/// </summary>
+	public IReadOnlyDictionary<string, string>? Answers { get; init; }
+
+	/// <summary>
+	/// Optional session-specific run options customization.
+	/// </summary>
+	public Func<ReplRunOptions, ReplRunOptions>? ConfigureRunOptions { get; init; }
+
+	internal ReplRunOptions BuildRunOptions(ReplScenarioOptions scenario)
+	{
+		ArgumentNullException.ThrowIfNull(scenario);
+		// Said here rather than left to dereference: a factory returning null surfaced as a bare
+		// NullReferenceException from inside session startup, which names nothing the caller set.
+		var baseOptions = scenario.RunOptionsFactory()
+			?? throw new InvalidOperationException(
+				$"{nameof(ReplScenarioOptions)}.{nameof(ReplScenarioOptions.RunOptionsFactory)} returned "
+				+ "null. It has to return the run options each session starts from.");
+		var overrides = baseOptions.TerminalOverrides ?? new TerminalSessionOverrides();
+		overrides = overrides with
+		{
+			TransportName = TransportName ?? overrides.TransportName,
+			RemotePeer = RemotePeer ?? overrides.RemotePeer,
+			TerminalIdentity = TerminalIdentity ?? overrides.TerminalIdentity,
+			WindowSize = WindowSize ?? overrides.WindowSize,
+			AnsiSupported = AnsiSupported ?? overrides.AnsiSupported,
+			TerminalCapabilities = TerminalCapabilities ?? overrides.TerminalCapabilities,
+		};
+
+		var configured = baseOptions with { TerminalOverrides = overrides };
+		if (ConfigureRunOptions is not null)
+		{
+			configured = ConfigureRunOptions(configured);
+		}
+
+		return configured;
+	}
+}

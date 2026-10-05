@@ -1,0 +1,680 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using Repl;
+
+namespace Repl.Internal.Options;
+
+internal static class OptionSchemaBuilder
+{
+	public static OptionSchema Build(
+		RouteTemplate template,
+		CommandBuilder command,
+		ParsingOptions parsingOptions,
+		ImplicitServiceParameterRegistry implicitServiceParameters,
+		Func<ReplCaseSensitivity>? resolveGlobalCaseSensitivity = null)
+	{
+		ArgumentNullException.ThrowIfNull(template);
+		ArgumentNullException.ThrowIfNull(command);
+		ArgumentNullException.ThrowIfNull(parsingOptions);
+		ArgumentNullException.ThrowIfNull(implicitServiceParameters);
+
+		var routeParameterNames = template.Segments
+			.OfType<DynamicRouteSegment>()
+			.Select(segment => segment.Name)
+			.ToHashSet(StringComparer.OrdinalIgnoreCase);
+		var entries = new List<OptionSchemaEntry>();
+		var parameters = new Dictionary<string, OptionSchemaParameter>(StringComparer.OrdinalIgnoreCase);
+		var regularPositionalParameterNames = new List<string>();
+		var groupPositionalPropertyNames = new List<string>();
+		foreach (var parameter in command.Handler.Method.GetParameters())
+		{
+			if (ShouldSkipSchemaParameter(parameter, routeParameterNames, implicitServiceParameters))
+			{
+				continue;
+			}
+
+#pragma warning disable IL2072
+			if (IsOptionsGroupParameter(parameter))
+			{
+				AppendOptionsGroupSchemaEntries(
+					parameter.ParameterType,
+					entries,
+					parameters,
+					groupPositionalPropertyNames,
+					parsingOptions);
+			}
+#pragma warning restore IL2072
+			else
+			{
+				AppendParameterSchemaEntries(parameter, entries, parameters, parsingOptions);
+				if (IsExplicitPositionalParameter(parameter))
+				{
+					regularPositionalParameterNames.Add(parameter.Name!);
+				}
+			}
+		}
+
+		ValidatePositionalBindingCompatibility(regularPositionalParameterNames, groupPositionalPropertyNames);
+		ValidateTokenCollisions(entries, parsingOptions.OptionCaseSensitivity, template);
+		return new OptionSchema(
+			entries,
+			parameters,
+			resolveGlobalCaseSensitivity ?? (() => parsingOptions.OptionCaseSensitivity));
+	}
+
+	private static bool ShouldSkipSchemaParameter(
+		ParameterInfo parameter,
+		HashSet<string> routeParameterNames,
+		ImplicitServiceParameterRegistry implicitServiceParameters)
+	{
+		var optionAttribute = parameter.GetCustomAttribute<ReplOptionAttribute>(inherit: true);
+		var argumentAttribute = parameter.GetCustomAttribute<ReplArgumentAttribute>(inherit: true);
+		if (implicitServiceParameters.TryGetGlobalOptionsServiceType(parameter.ParameterType, out var globalOptionsType))
+		{
+			if (optionAttribute is not null || argumentAttribute is not null)
+			{
+				var attributeName = optionAttribute is not null
+					? nameof(ReplOptionAttribute).Replace("Attribute", string.Empty, StringComparison.Ordinal)
+					: nameof(ReplArgumentAttribute).Replace("Attribute", string.Empty, StringComparison.Ordinal);
+				throw new InvalidOperationException(
+					$"Parameter '{parameter.Name}' uses typed global options '{globalOptionsType.Name}' registered through "
+					+ $"UseGlobalOptions<T>() and cannot declare [{attributeName}]. Remove the attribute or use a separate command options type.");
+			}
+
+			return true;
+		}
+
+		if (string.IsNullOrWhiteSpace(parameter.Name)
+			|| parameter.ParameterType == typeof(CancellationToken)
+			|| implicitServiceParameters.IsImplicitServiceParameter(parameter.ParameterType)
+			|| parameter.GetCustomAttribute<FromContextAttribute>() is not null
+			|| parameter.GetCustomAttribute<FromServicesAttribute>() is not null)
+		{
+			return true;
+		}
+
+		if (!routeParameterNames.Contains(parameter.Name))
+		{
+			return false;
+		}
+
+		if (optionAttribute is null && argumentAttribute is null)
+		{
+			return true;
+		}
+
+		throw new InvalidOperationException(
+			$"Route parameter '{parameter.Name}' cannot declare ReplOption/ReplArgument attributes.");
+	}
+
+	private static void AppendParameterSchemaEntries(
+		ParameterInfo parameter,
+		List<OptionSchemaEntry> entries,
+		Dictionary<string, OptionSchemaParameter> parameters,
+		ParsingOptions parsingOptions)
+	{
+		var optionAttribute = parameter.GetCustomAttribute<ReplOptionAttribute>(inherit: true);
+		var mode = ResolveParameterMode(parameter);
+		if (parameters.ContainsKey(parameter.Name!))
+		{
+			throw new InvalidOperationException(
+				$"Duplicate parameter name '{parameter.Name}' in the command signature.");
+		}
+
+		parameters[parameter.Name!] = new OptionSchemaParameter(
+			parameter.Name!,
+			parameter.ParameterType,
+			mode,
+			CaseSensitivity: optionAttribute?.CaseSensitivityOverride,
+			ExplicitArity: optionAttribute?.ArityOverride,
+			IsHidden: optionAttribute?.Hidden ?? false,
+			IsAutomationHidden: optionAttribute?.AutomationHidden ?? false,
+			CanBeOmitted: CanParameterBeOmitted(parameter),
+			SupportsServiceFallback: true);
+		if (mode == ReplParameterMode.ArgumentOnly)
+		{
+			return;
+		}
+
+		var arity = ResolveArity(parameter, optionAttribute);
+		var tokenKind = ResolveTokenKind(parameter.ParameterType, arity);
+		var canonicalToken = ResolveCanonicalToken(parameter.Name!, optionAttribute);
+		entries.Add(new OptionSchemaEntry(
+			canonicalToken,
+			parameter.Name!,
+			tokenKind,
+			arity,
+			CaseSensitivity: optionAttribute?.CaseSensitivityOverride));
+		AppendOptionAliases(parameter, tokenKind, arity, optionAttribute, parsingOptions, entries);
+		AppendHiddenOptionAliases(parameter, tokenKind, arity, optionAttribute, entries);
+		AppendReverseAliases(parameter, optionAttribute, entries);
+		AppendValueAliases(parameter, optionAttribute, entries);
+		AppendEnumAliases(parameter, optionAttribute, entries);
+	}
+
+	private static OptionSchemaTokenKind ResolveTokenKind(Type parameterType, ReplArity arity) =>
+		IsBoolParameter(parameterType) && arity != ReplArity.ExactlyOne
+			? OptionSchemaTokenKind.BoolFlag
+			: OptionSchemaTokenKind.NamedOption;
+
+	private static string ResolveCanonicalToken(string parameterName, ReplOptionAttribute? optionAttribute)
+	{
+		var canonicalName = string.IsNullOrWhiteSpace(optionAttribute?.Name)
+			? parameterName
+			: optionAttribute!.Name!;
+		return EnsureLongPrefix(canonicalName);
+	}
+
+	private static void AppendOptionAliases(
+		ParameterInfo parameter,
+		OptionSchemaTokenKind tokenKind,
+		ReplArity arity,
+		ReplOptionAttribute? optionAttribute,
+		ParsingOptions parsingOptions,
+		List<OptionSchemaEntry> entries)
+	{
+		foreach (var alias in optionAttribute?.Aliases ?? [])
+		{
+			// Preserve case-distinct aliases in the parse schema so inherited visibility can be
+			// reevaluated if the global case mode changes after mapping.
+			if ((optionAttribute?.HiddenAliases ?? []).Contains(alias, StringComparer.Ordinal))
+			{
+				continue;
+			}
+
+			ValidateOptionToken(alias, parameter.Name!);
+			entries.Add(new OptionSchemaEntry(
+				alias,
+				parameter.Name!,
+				tokenKind,
+				arity,
+				CaseSensitivity: optionAttribute?.CaseSensitivityOverride));
+		}
+	}
+
+	private static void AppendHiddenOptionAliases(
+		ParameterInfo parameter,
+		OptionSchemaTokenKind tokenKind,
+		ReplArity arity,
+		ReplOptionAttribute? optionAttribute,
+		List<OptionSchemaEntry> entries)
+	{
+		foreach (var alias in optionAttribute?.HiddenAliases ?? [])
+		{
+			ValidateOptionToken(alias, parameter.Name!);
+			entries.Add(new OptionSchemaEntry(
+				alias,
+				parameter.Name!,
+				tokenKind,
+				arity,
+				CaseSensitivity: optionAttribute?.CaseSensitivityOverride,
+				IsHidden: true));
+		}
+	}
+
+	private static void AppendReverseAliases(
+		ParameterInfo parameter,
+		ReplOptionAttribute? optionAttribute,
+		List<OptionSchemaEntry> entries)
+	{
+		foreach (var reverseAlias in optionAttribute?.ReverseAliases ?? [])
+		{
+			ValidateOptionToken(reverseAlias, parameter.Name!);
+			entries.Add(new OptionSchemaEntry(
+				reverseAlias,
+				parameter.Name!,
+				OptionSchemaTokenKind.ReverseFlag,
+				ReplArity.ZeroOrOne,
+				CaseSensitivity: optionAttribute?.CaseSensitivityOverride,
+				InjectedValue: "false"));
+		}
+	}
+
+	private static void AppendValueAliases(
+		ParameterInfo parameter,
+		ReplOptionAttribute? optionAttribute,
+		List<OptionSchemaEntry> entries)
+	{
+		foreach (var valueAlias in parameter.GetCustomAttributes<ReplValueAliasAttribute>(inherit: true))
+		{
+			ValidateOptionToken(valueAlias.Token, parameter.Name!);
+			entries.Add(new OptionSchemaEntry(
+				valueAlias.Token,
+				parameter.Name!,
+				OptionSchemaTokenKind.ValueAlias,
+				ReplArity.ZeroOrOne,
+				CaseSensitivity: valueAlias.CaseSensitivityOverride ?? optionAttribute?.CaseSensitivityOverride,
+				InjectedValue: valueAlias.Value));
+		}
+	}
+
+	private static ReplArity ResolveArity(ParameterInfo parameter, ReplOptionAttribute? optionAttribute)
+	{
+		if (optionAttribute?.ArityOverride is { } explicitArity)
+		{
+			return explicitArity;
+		}
+
+		if (IsBoolParameter(parameter.ParameterType))
+		{
+			return ReplArity.ZeroOrOne;
+		}
+
+		if (IsCollection(parameter.ParameterType))
+		{
+			return ReplArity.ZeroOrMore;
+		}
+
+		if (Nullable.GetUnderlyingType(parameter.ParameterType) is not null || parameter.HasDefaultValue)
+		{
+			return ReplArity.ZeroOrOne;
+		}
+
+		return ReplArity.ExactlyOne;
+	}
+
+	private static bool IsCollection(Type type) =>
+		type.IsArray
+		|| (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+		|| (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IReadOnlyList<>));
+
+	private static bool IsBoolParameter(Type type) =>
+		(Nullable.GetUnderlyingType(type) ?? type) == typeof(bool);
+
+	private static string ToCamelCase(string name) =>
+		name.Length == 0 || char.IsLower(name[0])
+			? name
+			: string.Create(name.Length, name, static (span, source) =>
+			{
+				source.AsSpan().CopyTo(span);
+				span[0] = char.ToLowerInvariant(span[0]);
+			});
+
+	private static string EnsureLongPrefix(string name) =>
+		name.StartsWith("--", StringComparison.Ordinal) ? name : $"--{name}";
+
+	private static void ValidateOptionToken(string token, string parameterName)
+	{
+		if (string.IsNullOrWhiteSpace(token)
+			|| token.Contains(' ', StringComparison.Ordinal)
+			|| (!token.StartsWith("--", StringComparison.Ordinal) && !token.StartsWith('-')))
+		{
+			throw new InvalidOperationException(
+				$"Invalid option token '{token}' declared on parameter '{parameterName}'.");
+		}
+	}
+
+	private static void AppendEnumAliases(
+		ParameterInfo parameter,
+		ReplOptionAttribute? optionAttribute,
+		List<OptionSchemaEntry> entries)
+	{
+		var enumType = Nullable.GetUnderlyingType(parameter.ParameterType) ?? parameter.ParameterType;
+		if (!enumType.IsEnum)
+		{
+			return;
+		}
+
+#pragma warning disable IL2075
+		foreach (var field in enumType.GetFields(BindingFlags.Public | BindingFlags.Static))
+#pragma warning restore IL2075
+		{
+			var enumFlag = field.GetCustomAttribute<ReplEnumFlagAttribute>(inherit: false);
+			if (enumFlag is null)
+			{
+				continue;
+			}
+
+			foreach (var alias in enumFlag.Aliases)
+			{
+				ValidateOptionToken(alias, parameter.Name ?? enumType.Name);
+				entries.Add(new OptionSchemaEntry(
+					alias,
+					parameter.Name!,
+					OptionSchemaTokenKind.EnumAlias,
+					ReplArity.ZeroOrOne,
+					CaseSensitivity: enumFlag.CaseSensitivityOverride ?? optionAttribute?.CaseSensitivityOverride,
+					InjectedValue: field.Name));
+			}
+		}
+	}
+
+	private static bool IsOptionsGroupParameter(ParameterInfo parameter) =>
+		Attribute.IsDefined(parameter.ParameterType, typeof(ReplOptionsGroupAttribute), inherit: true);
+
+	private static ReplParameterMode ResolveParameterMode(ParameterInfo parameter)
+	{
+		var optionAttribute = parameter.GetCustomAttribute<ReplOptionAttribute>(inherit: true);
+		if (optionAttribute is not null)
+		{
+			return optionAttribute.Mode;
+		}
+
+		var argumentAttribute = parameter.GetCustomAttribute<ReplArgumentAttribute>(inherit: true);
+		return argumentAttribute?.Mode ?? ReplParameterMode.OptionAndPositional;
+	}
+
+	private static bool IsExplicitPositionalParameter(ParameterInfo parameter)
+	{
+		var optionAttribute = parameter.GetCustomAttribute<ReplOptionAttribute>(inherit: true);
+		if (optionAttribute is not null)
+		{
+			return optionAttribute.Mode != ReplParameterMode.OptionOnly;
+		}
+
+		var argumentAttribute = parameter.GetCustomAttribute<ReplArgumentAttribute>(inherit: true);
+		return argumentAttribute is not null && argumentAttribute.Mode != ReplParameterMode.OptionOnly;
+	}
+
+	private static void ValidatePositionalBindingCompatibility(
+		List<string> regularPositionalParameterNames,
+		List<string> groupPositionalPropertyNames)
+	{
+		if (regularPositionalParameterNames.Count == 0 || groupPositionalPropertyNames.Count == 0)
+		{
+			return;
+		}
+
+		throw new InvalidOperationException(
+			$"Cannot mix positional options-group properties ({string.Join(", ", groupPositionalPropertyNames)}) "
+			+ $"with positional handler parameters ({string.Join(", ", regularPositionalParameterNames)}).");
+	}
+
+	[UnconditionalSuppressMessage(
+		"Trimming",
+		"IL2070",
+		Justification = "Options group types are user-defined and always preserved by the handler delegate reference.")]
+	private static void AppendOptionsGroupSchemaEntries(
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
+		Type groupType,
+		List<OptionSchemaEntry> entries,
+		Dictionary<string, OptionSchemaParameter> parameters,
+		List<string> positionalPropertyNames,
+		ParsingOptions parsingOptions)
+	{
+		ValidateOptionsGroupType(groupType);
+
+		foreach (var property in groupType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+		{
+			if (!property.CanWrite)
+			{
+				continue;
+			}
+
+			if (Attribute.IsDefined(property.PropertyType, typeof(ReplOptionsGroupAttribute), inherit: true))
+			{
+				throw new InvalidOperationException(
+					$"Nested options groups are not supported. Property '{property.Name}' on '{groupType.Name}' is itself an options group.");
+			}
+
+			AppendPropertySchemaEntries(property, entries, parameters, positionalPropertyNames, parsingOptions);
+		}
+	}
+
+	[UnconditionalSuppressMessage(
+		"Trimming",
+		"IL2070",
+		Justification = "Options group types are user-defined and always preserved by the handler delegate reference.")]
+	private static void ValidateOptionsGroupType(
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
+		Type groupType)
+	{
+		if (groupType.IsAbstract || groupType.IsInterface)
+		{
+			throw new InvalidOperationException(
+				$"Options group type '{groupType.Name}' must be a concrete class.");
+		}
+
+		if (groupType.GetConstructor(BindingFlags.Public | BindingFlags.Instance, Type.EmptyTypes) is null)
+		{
+			throw new InvalidOperationException(
+				$"Options group type '{groupType.Name}' must have a public parameterless constructor.");
+		}
+	}
+
+	// Mirrors the requiredness rule the documentation model reports: a value type with no default and
+	// no nullable wrapper has nothing to bind from when the option is absent, so the binder rejects
+	// it. Options-group properties always carry the default instance's value and so are never
+	// mandatory by shape — only an explicit arity can make them so.
+	private static bool CanParameterBeOmitted(ParameterInfo parameter) =>
+		parameter.HasDefaultValue
+		|| !parameter.ParameterType.IsValueType
+		|| Nullable.GetUnderlyingType(parameter.ParameterType) is not null;
+
+	private static void AppendPropertySchemaEntries(
+		PropertyInfo property,
+		List<OptionSchemaEntry> entries,
+		Dictionary<string, OptionSchemaParameter> parameters,
+		List<string> positionalPropertyNames,
+		ParsingOptions parsingOptions)
+	{
+		var optionAttribute = property.GetCustomAttribute<ReplOptionAttribute>(inherit: true);
+		var argumentAttribute = property.GetCustomAttribute<ReplArgumentAttribute>(inherit: true);
+		var mode = optionAttribute?.Mode
+			?? argumentAttribute?.Mode
+			?? ReplParameterMode.OptionOnly;
+		if (parameters.ContainsKey(property.Name))
+		{
+			throw new InvalidOperationException(
+				$"Duplicate parameter name '{property.Name}' between options group '{property.DeclaringType?.Name}' and the command signature.");
+		}
+
+		parameters[property.Name] = new OptionSchemaParameter(
+			property.Name,
+			property.PropertyType,
+			mode,
+			CaseSensitivity: optionAttribute?.CaseSensitivityOverride,
+			ExplicitArity: optionAttribute?.ArityOverride,
+			IsHidden: optionAttribute?.Hidden ?? false,
+			IsAutomationHidden: optionAttribute?.AutomationHidden ?? false);
+		if (mode != ReplParameterMode.OptionOnly)
+		{
+			positionalPropertyNames.Add(property.Name);
+		}
+		if (mode == ReplParameterMode.ArgumentOnly)
+		{
+			return;
+		}
+
+		var arity = ResolvePropertyArity(property.PropertyType, optionAttribute);
+		var tokenKind = ResolveTokenKind(property.PropertyType, arity);
+		var canonicalToken = ResolveCanonicalToken(ToCamelCase(property.Name), optionAttribute);
+		entries.Add(new OptionSchemaEntry(
+			canonicalToken,
+			property.Name,
+			tokenKind,
+			arity,
+			CaseSensitivity: optionAttribute?.CaseSensitivityOverride));
+		AppendPropertyOptionAliases(property.Name, tokenKind, arity, optionAttribute, parsingOptions, entries);
+		AppendPropertyHiddenOptionAliases(property.Name, tokenKind, arity, optionAttribute, entries);
+		AppendPropertyReverseAliases(property.Name, optionAttribute, entries);
+		AppendPropertyValueAliases(property, optionAttribute, entries);
+		AppendPropertyEnumAliases(property, optionAttribute, entries);
+	}
+
+	private static ReplArity ResolvePropertyArity(Type propertyType, ReplOptionAttribute? optionAttribute)
+	{
+		if (optionAttribute?.ArityOverride is { } explicitArity)
+		{
+			return explicitArity;
+		}
+
+		if (IsBoolParameter(propertyType))
+		{
+			return ReplArity.ZeroOrOne;
+		}
+
+		if (IsCollection(propertyType))
+		{
+			return ReplArity.ZeroOrMore;
+		}
+
+		return ReplArity.ZeroOrOne;
+	}
+
+	private static void AppendPropertyOptionAliases(
+		string propertyName,
+		OptionSchemaTokenKind tokenKind,
+		ReplArity arity,
+		ReplOptionAttribute? optionAttribute,
+		ParsingOptions parsingOptions,
+		List<OptionSchemaEntry> entries)
+	{
+		foreach (var alias in optionAttribute?.Aliases ?? [])
+		{
+			// Preserve case-distinct aliases in the parse schema so inherited visibility can be
+			// reevaluated if the global case mode changes after mapping.
+			if ((optionAttribute?.HiddenAliases ?? []).Contains(alias, StringComparer.Ordinal))
+			{
+				continue;
+			}
+
+			ValidateOptionToken(alias, propertyName);
+			entries.Add(new OptionSchemaEntry(
+				alias,
+				propertyName,
+				tokenKind,
+				arity,
+				CaseSensitivity: optionAttribute?.CaseSensitivityOverride));
+		}
+	}
+
+	private static void AppendPropertyHiddenOptionAliases(
+		string propertyName,
+		OptionSchemaTokenKind tokenKind,
+		ReplArity arity,
+		ReplOptionAttribute? optionAttribute,
+		List<OptionSchemaEntry> entries)
+	{
+		foreach (var alias in optionAttribute?.HiddenAliases ?? [])
+		{
+			ValidateOptionToken(alias, propertyName);
+			entries.Add(new OptionSchemaEntry(
+				alias,
+				propertyName,
+				tokenKind,
+				arity,
+				CaseSensitivity: optionAttribute?.CaseSensitivityOverride,
+				IsHidden: true));
+		}
+	}
+
+	private static void AppendPropertyReverseAliases(
+		string propertyName,
+		ReplOptionAttribute? optionAttribute,
+		List<OptionSchemaEntry> entries)
+	{
+		foreach (var reverseAlias in optionAttribute?.ReverseAliases ?? [])
+		{
+			ValidateOptionToken(reverseAlias, propertyName);
+			entries.Add(new OptionSchemaEntry(
+				reverseAlias,
+				propertyName,
+				OptionSchemaTokenKind.ReverseFlag,
+				ReplArity.ZeroOrOne,
+				CaseSensitivity: optionAttribute?.CaseSensitivityOverride,
+				InjectedValue: "false"));
+		}
+	}
+
+	private static void AppendPropertyValueAliases(
+		PropertyInfo property,
+		ReplOptionAttribute? optionAttribute,
+		List<OptionSchemaEntry> entries)
+	{
+		foreach (var valueAlias in property.GetCustomAttributes<ReplValueAliasAttribute>(inherit: true))
+		{
+			ValidateOptionToken(valueAlias.Token, property.Name);
+			entries.Add(new OptionSchemaEntry(
+				valueAlias.Token,
+				property.Name,
+				OptionSchemaTokenKind.ValueAlias,
+				ReplArity.ZeroOrOne,
+				CaseSensitivity: valueAlias.CaseSensitivityOverride ?? optionAttribute?.CaseSensitivityOverride,
+				InjectedValue: valueAlias.Value));
+		}
+	}
+
+	private static void AppendPropertyEnumAliases(
+		PropertyInfo property,
+		ReplOptionAttribute? optionAttribute,
+		List<OptionSchemaEntry> entries)
+	{
+		var enumType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+		if (!enumType.IsEnum)
+		{
+			return;
+		}
+
+#pragma warning disable IL2075
+		foreach (var field in enumType.GetFields(BindingFlags.Public | BindingFlags.Static))
+#pragma warning restore IL2075
+		{
+			var enumFlag = field.GetCustomAttribute<ReplEnumFlagAttribute>(inherit: false);
+			if (enumFlag is null)
+			{
+				continue;
+			}
+
+			foreach (var alias in enumFlag.Aliases)
+			{
+				ValidateOptionToken(alias, property.Name);
+				entries.Add(new OptionSchemaEntry(
+					alias,
+					property.Name,
+					OptionSchemaTokenKind.EnumAlias,
+					ReplArity.ZeroOrOne,
+					CaseSensitivity: enumFlag.CaseSensitivityOverride ?? optionAttribute?.CaseSensitivityOverride,
+					InjectedValue: field.Name));
+			}
+		}
+	}
+
+	internal static void ValidateTokenCollisions(
+		IReadOnlyList<OptionSchemaEntry> entries,
+		ReplCaseSensitivity globalCaseSensitivity,
+		RouteTemplate template)
+	{
+		// Collisions are decided per PAIR under each entry's effective case sensitivity, not
+		// under the global comparer alone: ordinal-equal tokens always collide, while tokens
+		// differing only by casing collide only when BOTH entries are effectively
+		// case-insensitive (full mutual shadowing — no typed token can distinguish them).
+		// Two explicitly case-sensitive entries stay distinguishable ordinally even under a
+		// global case-insensitive default, and a mixed pair keeps per-token runtime
+		// resolution (the parser's "Ambiguous option" diagnostic) instead of failing
+		// registration. Buckets are keyed ignoring case to surface every candidate pair.
+		var map = new Dictionary<string, List<OptionSchemaEntry>>(StringComparer.OrdinalIgnoreCase);
+		foreach (var entry in entries)
+		{
+			if (!map.TryGetValue(entry.Token, out var bucket))
+			{
+				map[entry.Token] = [entry];
+				continue;
+			}
+
+			foreach (var existing in bucket)
+			{
+				var ordinalEqual = string.Equals(existing.Token, entry.Token, StringComparison.Ordinal);
+				var bothInsensitive =
+					(existing.CaseSensitivity ?? globalCaseSensitivity) == ReplCaseSensitivity.CaseInsensitive
+					&& (entry.CaseSensitivity ?? globalCaseSensitivity) == ReplCaseSensitivity.CaseInsensitive;
+				if (!ordinalEqual && !bothInsensitive)
+				{
+					continue;
+				}
+
+				if (string.Equals(existing.ParameterName, entry.ParameterName, StringComparison.OrdinalIgnoreCase)
+					&& existing.TokenKind == entry.TokenKind
+					&& string.Equals(existing.InjectedValue, entry.InjectedValue, StringComparison.Ordinal))
+				{
+					continue;
+				}
+
+				throw new InvalidOperationException(
+					$"Option token collision detected for '{entry.Token}' between '{existing.ParameterName}' and '{entry.ParameterName}' while registering command '{template.Template}'.");
+			}
+
+			bucket.Add(entry);
+		}
+	}
+}

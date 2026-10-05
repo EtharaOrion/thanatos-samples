@@ -1,0 +1,179 @@
+# Repl.Spectre
+
+**Website:** [repl.yllibed.org](https://repl.yllibed.org/)
+
+Spectre.Console integration for Repl Toolkit. Provides rich interactive prompts, injectable `IAnsiConsole`, a lightweight Spectre output format, and an interaction presenter that can capture feedback during screen-owned flows.
+
+## Features
+
+- **Rich prompts** — `SelectionPrompt`, `MultiSelectionPrompt`, `ConfirmationPrompt`, `TextPrompt`, and secret input via Spectre.Console
+- **IAnsiConsole injection** — use `IAnsiConsole` as a command parameter to render tables, trees, panels, and other Spectre renderables
+- **Lightweight output** — the `"spectre"` output format renders objects, results, help, and collections with less chrome than the default Spectre widgets
+- **Banner support** — inject `IAnsiConsole` into `WithBanner()` callbacks for rich startup banners (FigletText, Markup, etc.)
+- **Capture support** — `SpectreInteractionPresenter.BeginCapture(...)` redirects REPL feedback away from a screen-owned Spectre surface
+- **Configurable capabilities** — `SpectreConsoleOptions` to control Unicode rendering for different terminal environments
+
+## Setup
+
+```csharp
+var app = ReplApp.Create(services =>
+{
+    services.AddSpectreConsole(); // DI: IAnsiConsole + SpectreInteractionHandler + SpectreInteractionPresenter
+})
+.UseSpectreConsole(); // Output transformer + banner format + UTF-8 encoding
+```
+
+Two calls, two concerns:
+
+| Method | Scope | What it does |
+|--------|-------|-------------|
+| `AddSpectreConsole()` | `IServiceCollection` | Registers `IAnsiConsole`, `SpectreInteractionHandler`, and `SpectreInteractionPresenter` in DI |
+| `UseSpectreConsole()` | `ReplApp` | Registers `"spectre"` output transformer, sets it as default, adds `--spectre`, enables banners, configures UTF-8 |
+
+## Usage
+
+### Auto-rendered tables
+
+Return a collection from a command — the output transformer renders it as a lightweight Spectre table:
+
+```csharp
+app.Map("list", (IContactStore store) => store.All());
+```
+
+Column headers are derived from `[Display]` attributes. No rendering code needed.
+
+### Direct `IAnsiConsole` injection
+
+Inject `IAnsiConsole` to use any Spectre renderable:
+
+```csharp
+app.Map("report", (IAnsiConsole console) =>
+{
+    var table = new Table().AddColumn("Name").AddColumn("Value");
+    table.AddRow("Item", "42");
+    console.Write(table);
+});
+```
+
+Works with all Spectre renderables: `Table`, `Tree`, `Panel`, `BarChart`, `Calendar`, `FigletText`, `Progress`, `Status`, and more.
+
+### Format switching
+
+`UseSpectreConsole()` makes `spectre` the default output format. You can still switch per-command:
+
+- `--spectre` selects the Spectre renderer
+- `--human` switches back to the standard text renderer
+- `--output:<format>` remains the canonical selector
+
+`--help` respects the selected format as well, so `--spectre --help` uses Spectre help while `--human --help` returns the classic text help.
+
+### Transparent prompt upgrade
+
+`IReplInteractionChannel` calls are automatically rendered as Spectre prompts:
+
+| Channel method | Spectre prompt |
+|----------------|---------------|
+| `AskTextAsync` | `TextPrompt<string>` |
+| `AskChoiceAsync` | `SelectionPrompt<string>` |
+| `AskMultiChoiceAsync` | `MultiSelectionPrompt<string>` |
+| `AskConfirmationAsync` | `ConfirmationPrompt` |
+| `AskSecretAsync` | `TextPrompt<string>.Secret()` |
+
+No Spectre-specific code in handlers — the same handler works with or without the Spectre package.
+
+### Capture feedback during screen-owned flows
+
+If your command temporarily owns the terminal surface, do not mix that full-screen/live Spectre rendering with regular REPL status/progress output on the same writer. Instead, capture interaction feedback explicitly:
+
+```csharp
+app.Map("dashboard", static async (
+    SpectreInteractionPresenter presenter,
+    IReplIoContext io,
+    CancellationToken ct) =>
+{
+    using var capture = presenter.BeginCapture(io.Error);
+    await RunDashboardAsync(ct);
+});
+```
+
+The `TextWriter` overload emits plain text only. In application handlers, prefer a session-aware sink such as `IReplIoContext.Error`. Reserve raw writers for host/tooling code that already owns the transport surface.
+
+You can also capture to a custom presenter:
+
+```csharp
+using var capture = presenter.BeginCapture(myPresenter);
+```
+
+This is the intended integration point for future TUI tooling.
+
+### Banner with `IAnsiConsole`
+
+Use `IAnsiConsole` in banner callbacks for rich startup output:
+
+```csharp
+app.WithBanner((IAnsiConsole console) =>
+{
+    console.Write(new FigletText("My App").Color(Color.Blue));
+    console.MarkupLine("[grey]Type 'help' to get started[/]");
+});
+```
+
+## Configuration
+
+`UseSpectreConsole()` accepts an optional callback to configure capabilities:
+
+```csharp
+// Default: Unicode enabled
+.UseSpectreConsole()
+
+// Disable Unicode for limited terminals
+.UseSpectreConsole(o => o.Unicode = false)
+```
+
+### `SpectreConsoleOptions`
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `Unicode` | `bool` | `true` | Enable Unicode box-drawing characters and symbols. When `false`, Spectre falls back to ASCII. |
+
+When `Unicode` is enabled, `UseSpectreConsole()` sets `Console.OutputEncoding` to UTF-8 to ensure
+Unicode characters (progress bars, spinners, box-drawing) render correctly on Windows.
+
+### Terminal detection
+
+Spectre rendering follows the same terminal detection as the rest of the framework — no
+configuration required:
+
+- **ANSI**: colors are emitted only when the host detection allows them (the shared gate also
+  driving shell-integration marks and advanced progress). `NO_COLOR`, `CLICOLOR_FORCE`, and
+  `TERM=dumb` are honored with the usual precedence, hosted clients can advertise ANSI through
+  capability flags, and a redirected console (an IDE Run window, a pipe) gets plain text instead
+  of raw escape sequences. When ANSI is off, the color system degrades to `NoColors`.
+- **Unicode**: box-drawing degrades in three tiers, resolved per console creation from the
+  actual output sink. When the sink's encoding carries the rounded glyphs, full Unicode borders
+  render intact. When only the square safe-border glyphs survive (a real console on a legacy OEM
+  codepage), Spectre's own non-Unicode fallback applies. When no box glyph survives — an ASCII
+  transport, or a **redirected** local console on a legacy codepage, where the reading process
+  (IDE run windows, CI logs, pipes) decodes UTF-8 while the writer emits OEM bytes — box drawing
+  is transliterated to ASCII (`+`, `-`, `|`) so the output stays legible in every charset. This
+  read-side gate complements the write-side UTF-8 setup above: `UseSpectreConsole()` upgrades a
+  real local console to UTF-8, and the gate degrades gracefully everywhere it could not. If a
+  redirected consumer legitimately decodes UTF-8 (a log viewer, a UTF-8 pipe), set
+  `Console.OutputEncoding = Encoding.UTF8` in the app to opt back into full Unicode borders. The
+  active verdict is exposed as `SpectreTerminalDetection.CurrentBoxDrawingSupport` for
+  diagnostics commands.
+- **CI logs are plain by default**: Spectre's built-in CI enrichers are disabled so they cannot
+  override the host detection; set `CLICOLOR_FORCE=1` in the workflow to restore colored logs.
+- Outside a Repl container (bare `AddSpectreConsole` without `UseSpectreConsole`), the profile
+  falls back to Spectre's own detection instead of the host gate.
+
+## Docs
+
+- [Cookbook: Spectre.Console](https://repl.yllibed.org/cookbook/spectre/) — setup, prompts, renderables, capture, banners
+- [Interactivity](https://repl.yllibed.org/reference/interactivity/) — IReplInteractionChannel, prompt contracts, progress
+- [Best Practices](https://repl.yllibed.org/reference/best-practices/) — static lambdas, test patterns, DI composition
+
+## Sample
+
+See [**sample 07-spectre**](../../samples/07-spectre/) for a comprehensive demo covering
+21 Spectre features across 14 commands.
