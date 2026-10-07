@@ -1,0 +1,333 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="The lost-wax caster: a foundrywoman tips a vessel of molten bronze into a clay mould while the wax original runs out of the base in bright rivulets, and the finished casting cools behind her carrying every fingerprint of the wax.">
+  <title>THANATOS - the lost-wax caster</title>
+  <defs>
+    <linearGradient id="bgSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#04050a"/>
+      <stop offset="0.55" stop-color="#0b0806"/>
+      <stop offset="1" stop-color="#160d07"/>
+    </linearGradient>
+    <linearGradient id="floorG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a1a10"/>
+      <stop offset="0.35" stop-color="#170e08"/>
+      <stop offset="1" stop-color="#070503"/>
+    </linearGradient>
+    <radialGradient id="pourGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe9ae" stop-opacity="0.85"/>
+      <stop offset="0.35" stop-color="#ff9a3a" stop-opacity="0.38"/>
+      <stop offset="0.7" stop-color="#c9500f" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#c9500f" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="emberDot" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff3c8" stop-opacity="0.95"/>
+      <stop offset="0.5" stop-color="#ff8c2a" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#ff6a00" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="streamG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffbe6"/>
+      <stop offset="0.5" stop-color="#ffd45e"/>
+      <stop offset="1" stop-color="#ff7a1a"/>
+    </linearGradient>
+    <linearGradient id="moltenPool" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff3c0"/>
+      <stop offset="1" stop-color="#ff9a3a"/>
+    </linearGradient>
+    <linearGradient id="bronzeG" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e0a85e"/>
+      <stop offset="0.45" stop-color="#8a5a2b"/>
+      <stop offset="1" stop-color="#3d2610"/>
+    </linearGradient>
+    <linearGradient id="bronzeDark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6e4620"/>
+      <stop offset="1" stop-color="#241507"/>
+    </linearGradient>
+    <linearGradient id="clayG" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8a5c3c"/>
+      <stop offset="0.4" stop-color="#5c3b24"/>
+      <stop offset="1" stop-color="#2e1d11"/>
+    </linearGradient>
+    <linearGradient id="vesselShell" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4a4038"/>
+      <stop offset="0.6" stop-color="#241d18"/>
+      <stop offset="1" stop-color="#120e0b"/>
+    </linearGradient>
+    <linearGradient id="steelG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a505c"/>
+      <stop offset="1" stop-color="#14161c"/>
+    </linearGradient>
+    <linearGradient id="waxFlow" x1="580" y1="0" x2="840" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffdf8e" stop-opacity="0.95"/>
+      <stop offset="0.45" stop-color="#ff9a4a" stop-opacity="0.8"/>
+      <stop offset="0.85" stop-color="#ff7f3f" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#ff7f3f" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="waxCore" x1="580" y1="0" x2="840" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff3c8" stop-opacity="1"/>
+      <stop offset="0.6" stop-color="#ffd48a" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ffd48a" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="titleG" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f2d18b"/>
+      <stop offset="0.6" stop-color="#d99a4e"/>
+      <stop offset="1" stop-color="#a5651f"/>
+    </linearGradient>
+    <linearGradient id="parchG" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6e5a3e"/>
+      <stop offset="1" stop-color="#3a2d1c"/>
+    </linearGradient>
+    <radialGradient id="coolCore" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ff6a1a" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#ff6a1a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vignette" cx="0.5" cy="0.45" r="0.75">
+      <stop offset="0" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="0.72" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.6"/>
+    </radialGradient>
+  </defs>
+
+  <!-- deep ground -->
+  <rect x="0" y="0" width="1200" height="630" fill="url(#bgSky)"/>
+
+  <!-- background: hall arches, beam, chains, dim windows, smoke -->
+  <path d="M40,210 A210,210 0 0 1 460,210 L460,230 A190,190 0 0 0 60,230 Z" fill="#120b07" opacity="0.9"/>
+  <path d="M420,190 A230,230 0 0 1 880,190 L880,212 A208,208 0 0 0 442,212 Z" fill="#140c07" opacity="0.9"/>
+  <path d="M800,205 A200,200 0 0 1 1195,205 L1195,226 A180,180 0 0 0 820,226 Z" fill="#120b07" opacity="0.9"/>
+  <path d="M60,230 A190,190 0 0 1 440,230 L440,236 A186,186 0 0 0 64,236 Z" fill="#59320f" opacity="0.35"/>
+  <path d="M442,212 A208,208 0 0 1 858,212 L858,218 A203,203 0 0 0 447,218 Z" fill="#6a3a10" opacity="0.3"/>
+  <rect x="0" y="88" width="1200" height="14" fill="#0e0906"/>
+  <rect x="0" y="100" width="1200" height="3" fill="#33200e" opacity="0.5"/>
+  <path d="M700,102 L700,196" stroke="#0d0a07" stroke-width="6"/>
+  <path d="M700,196 q-10,10 0,20 q10,-10 0,-20" fill="none" stroke="#241a10" stroke-width="4"/>
+  <circle cx="700" cy="126" r="5" fill="none" stroke="#1c130b" stroke-width="3"/>
+  <circle cx="700" cy="142" r="5" fill="none" stroke="#1c130b" stroke-width="3"/>
+  <circle cx="700" cy="158" r="5" fill="none" stroke="#1c130b" stroke-width="3"/>
+  <circle cx="700" cy="174" r="5" fill="none" stroke="#1c130b" stroke-width="3"/>
+  <path d="M772,102 L772,168" stroke="#0d0a07" stroke-width="5"/>
+  <circle cx="772" cy="120" r="4" fill="none" stroke="#1a110a" stroke-width="3"/>
+  <circle cx="772" cy="134" r="4" fill="none" stroke="#1a110a" stroke-width="3"/>
+  <circle cx="772" cy="148" r="4" fill="none" stroke="#1a110a" stroke-width="3"/>
+  <rect x="118" y="248" width="34" height="52" rx="10" fill="#2a1207" opacity="0.85"/>
+  <rect x="124" y="256" width="22" height="38" rx="8" fill="#6a2c0a" opacity="0.5"/>
+  <rect x="190" y="252" width="30" height="46" rx="9" fill="#2a1207" opacity="0.8"/>
+  <rect x="196" y="260" width="18" height="32" rx="7" fill="#5c260a" opacity="0.45"/>
+  <path d="M150,340 q40,-60 10,-120 q60,50 30,124 Z" fill="#3a2a1c" opacity="0.14"/>
+  <path d="M980,300 q-30,-70 8,-130 q40,66 12,134 Z" fill="#3a2a1c" opacity="0.12"/>
+  <path d="M620,240 q30,-30 12,-70 q44,34 20,84" fill="none" stroke="#4a3a2a" stroke-width="7" opacity="0.12" stroke-linecap="round"/>
+  <path d="M560,220 q26,-24 14,-58" fill="none" stroke="#4a3a2a" stroke-width="5" opacity="0.10" stroke-linecap="round"/>
+
+  <!-- floor -->
+  <rect x="0" y="520" width="1200" height="110" fill="url(#floorG)"/>
+  <path d="M0,520 L1200,520 L1200,528 L0,528 Z" fill="#3a2412" opacity="0.4"/>
+  <ellipse cx="612" cy="574" rx="230" ry="26" fill="#c9500f" opacity="0.10"/>
+  <ellipse cx="612" cy="572" rx="120" ry="14" fill="#ff8c2a" opacity="0.12"/>
+
+  <!-- the great light of the pour -->
+  <ellipse cx="600" cy="360" rx="330" ry="270" fill="url(#pourGlow)"/>
+
+  <!-- ================= MIDGROUND: the finished casting, cooling ================= -->
+  <g>
+    <path d="M856,520 L1004,520 L1022,548 L838,548 Z" fill="url(#bronzeDark)"/>
+    <rect x="838" y="548" width="184" height="30" fill="#1a0f06"/>
+    <rect x="838" y="548" width="184" height="5" fill="#7a4a1c" opacity="0.5"/>
+    <path d="M856,520 L1004,520 L1004,514 L856,514 Z" fill="#8a5a2b" opacity="0.6"/>
+    <!-- statue figure, arms at sides, the twin of the lost wax -->
+    <path d="M918,214 q16,-12 30,2 q10,12 4,26 q-5,12 -18,15 q-15,3 -23,-8 q-8,-13 -1,-24 q3,-6 8,-11 Z" fill="url(#bronzeG)"/>
+    <path d="M922,256 q10,8 22,2 l4,18 q-16,8 -30,0 Z" fill="url(#bronzeDark)"/>
+    <path d="M902,276 q28,-12 60,0 q14,6 18,26 l8,58 q2,16 -6,22 l-8,-4 -6,-52 -4,80 q22,10 20,26 l-4,88 -14,0 -6,-84 -8,-2 -6,86 -14,0 -6,-90 q-4,-16 14,-24 l-4,-78 -8,52 -8,4 q-8,-8 -6,-22 l8,-60 q4,-18 20,-26 Z" fill="url(#bronzeG)"/>
+    <path d="M962,300 q10,4 12,20 l6,44 -8,6 -10,-62 Z" fill="url(#bronzeDark)" opacity="0.8"/>
+    <path d="M914,436 l14,0 4,84 -12,0 Z" fill="url(#bronzeDark)" opacity="0.65"/>
+    <!-- rim light from the pour, striking the statue's left -->
+    <path d="M918,214 q-10,10 -6,26 q3,10 12,15" fill="none" stroke="#ffb066" stroke-width="3" opacity="0.75" stroke-linecap="round"/>
+    <path d="M902,276 q-14,10 -18,28 l-8,58" fill="none" stroke="#ff9a4a" stroke-width="4" opacity="0.6" stroke-linecap="round"/>
+    <path d="M896,362 q-2,44 12,62 l4,90" fill="none" stroke="#ff9a4a" stroke-width="3" opacity="0.45" stroke-linecap="round"/>
+    <!-- residual heat in the chest, still cooling -->
+    <ellipse cx="930" cy="318" rx="34" ry="46" fill="url(#coolCore)"/>
+    <!-- fingerprints of the wax, kept whorl for whorl -->
+    <path d="M924,306 q14,-8 24,4 q8,12 -2,22 q-12,10 -22,0 q-8,-10 0,-26" fill="none" stroke="#f2c98a" stroke-width="1.4" opacity="0.28"/>
+    <path d="M928,312 q9,-5 15,3 q5,8 -2,14 q-8,6 -13,-1 q-4,-7 0,-16" fill="none" stroke="#f2c98a" stroke-width="1.1" opacity="0.24"/>
+    <path d="M932,318 q5,-3 8,2 q2,4 -2,7 q-4,3 -6,-1 q-2,-4 0,-8" fill="none" stroke="#f2c98a" stroke-width="0.9" opacity="0.22"/>
+    <path d="M908,398 q12,-7 21,3 q7,10 -2,19 q-10,9 -19,0 q-7,-9 0,-22" fill="none" stroke="#f2c98a" stroke-width="1.2" opacity="0.22"/>
+    <path d="M912,404 q7,-4 12,2 q4,6 -2,11 q-6,5 -10,-1 q-3,-5 0,-12" fill="none" stroke="#f2c98a" stroke-width="1" opacity="0.2"/>
+    <path d="M946,352 q11,-6 18,3 q6,9 -2,16 q-9,8 -16,0 q-6,-8 0,-19" fill="none" stroke="#f2c98a" stroke-width="1.1" opacity="0.2"/>
+    <path d="M949,357 q6,-3 10,2 q3,5 -1,9 q-5,4 -9,-1 q-3,-4 0,-10" fill="none" stroke="#f2c98a" stroke-width="0.9" opacity="0.18"/>
+    <!-- thin steam rising off the cooling metal -->
+    <path d="M934,206 q10,-22 -2,-40 q22,14 12,44" fill="none" stroke="#8a7a66" stroke-width="3" opacity="0.14" stroke-linecap="round"/>
+  </g>
+
+  <!-- ================= MIDGROUND: the clay mould receiving the metal ============ -->
+  <g>
+    <ellipse cx="622" cy="564" rx="96" ry="16" fill="#100c08"/>
+    <ellipse cx="622" cy="560" rx="88" ry="12" fill="#241812"/>
+    <ellipse cx="600" cy="558" rx="46" ry="8" fill="#ff8c2a" opacity="0.14"/>
+    <path d="M580,430 L664,430 L672,556 L572,556 Z" fill="url(#clayG)"/>
+    <path d="M580,430 L600,430 L596,556 L572,556 Z" fill="#a06a3e" opacity="0.35"/>
+    <path d="M648,430 L664,430 L672,556 L652,556 Z" fill="#140c06" opacity="0.6"/>
+    <!-- pour cup and vents -->
+    <path d="M596,412 L636,412 L630,432 L602,432 Z" fill="url(#clayG)"/>
+    <path d="M596,412 L636,412 L634,418 L598,418 Z" fill="#2a1a0e"/>
+    <ellipse cx="616" cy="413" rx="18" ry="4" fill="#1c1108"/>
+    <ellipse cx="614" cy="413" rx="9" ry="2.5" fill="url(#moltenPool)"/>
+    <rect x="586" y="416" width="8" height="16" rx="3" fill="url(#clayG)"/>
+    <rect x="640" y="416" width="8" height="16" rx="3" fill="url(#clayG)"/>
+    <path d="M590,414 q-2,-12 4,-18" fill="none" stroke="#c9b49a" stroke-width="2" opacity="0.18" stroke-linecap="round"/>
+    <path d="M644,414 q2,-12 -4,-18" fill="none" stroke="#c9b49a" stroke-width="2" opacity="0.16" stroke-linecap="round"/>
+    <!-- binding cords -->
+    <path d="M578,458 L668,458" stroke="#241608" stroke-width="7"/>
+    <path d="M578,456 L668,456" stroke="#7a5432" stroke-width="1.6" opacity="0.7"/>
+    <path d="M576,494 L670,494" stroke="#241608" stroke-width="7"/>
+    <path d="M576,492 L670,492" stroke="#7a5432" stroke-width="1.6" opacity="0.7"/>
+    <path d="M574,530 L672,530" stroke="#241608" stroke-width="7"/>
+    <path d="M574,528 L672,528" stroke="#7a5432" stroke-width="1.6" opacity="0.7"/>
+    <!-- light of the pour on the mould shoulder -->
+    <path d="M596,412 q-14,6 -16,22 l-4,60" fill="none" stroke="#ffb066" stroke-width="3.4" opacity="0.8" stroke-linecap="round"/>
+    <path d="M576,498 l-3,56" fill="none" stroke="#ff9a4a" stroke-width="2.6" opacity="0.55" stroke-linecap="round"/>
+    <!-- faint seam where the two mould halves meet -->
+    <path d="M622,432 L624,556" stroke="#1c1108" stroke-width="2" opacity="0.7"/>
+  </g>
+
+  <!-- ============ THE WAX, running out of the base and gone ============ -->
+  <g>
+    <path d="M598,548 q4,10 12,14 q30,14 64,22 q36,8 74,10 q28,1 52,-2" fill="none" stroke="url(#waxFlow)" stroke-width="9" stroke-linecap="round"/>
+    <path d="M598,548 q4,10 12,14 q30,14 64,22 q36,8 74,10 q28,1 52,-2" fill="none" stroke="url(#waxCore)" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M630,554 q22,18 58,26 q40,9 78,8" fill="none" stroke="url(#waxFlow)" stroke-width="6" stroke-linecap="round" opacity="0.85"/>
+    <path d="M630,554 q22,18 58,26 q40,9 78,8" fill="none" stroke="url(#waxCore)" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
+    <path d="M652,558 q16,22 48,30 q26,7 56,7" fill="none" stroke="url(#waxFlow)" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+    <ellipse cx="700" cy="588" rx="44" ry="7" fill="url(#waxFlow)" opacity="0.4"/>
+    <ellipse cx="676" cy="584" rx="22" ry="4" fill="#ffdf8e" opacity="0.35"/>
+    <circle cx="808" cy="592" r="2.6" fill="#ffb066" opacity="0.5"/>
+    <circle cx="826" cy="594" r="1.8" fill="#ffb066" opacity="0.3"/>
+    <circle cx="842" cy="595" r="1.2" fill="#ffb066" opacity="0.16"/>
+    <!-- the last of it lifts away as vapour -->
+    <path d="M812,584 q8,-14 0,-26 q14,10 8,28" fill="none" stroke="#b09a7e" stroke-width="2.2" opacity="0.2" stroke-linecap="round"/>
+    <path d="M838,588 q6,-10 0,-19 q10,7 6,21" fill="none" stroke="#b09a7e" stroke-width="1.8" opacity="0.14" stroke-linecap="round"/>
+  </g>
+
+  <!-- ================= FOREGROUND: the caster and her pour ================= -->
+  <g>
+    <!-- her shadow thrown away from the light -->
+    <ellipse cx="404" cy="578" rx="120" ry="14" fill="#000000" opacity="0.5"/>
+    <!-- back leg braced, front leg forward -->
+    <path d="M448,442 q-16,60 -22,96 l-8,34 -22,0 q2,-10 12,-12 l4,-30 q2,-52 14,-92 Z" fill="#191009"/>
+    <path d="M472,446 q10,54 18,88 l8,40 -24,0 q0,-10 10,-12 l-8,-32 q-14,-44 -24,-84 Z" fill="#1f130a"/>
+    <path d="M396,566 l26,0 4,10 -34,0 Z" fill="#0e0906"/>
+    <path d="M474,568 l26,0 4,10 -34,0 Z" fill="#0e0906"/>
+    <!-- skirt and apron -->
+    <path d="M436,356 q-8,50 -18,86 q22,14 62,10 q10,-46 4,-94 Z" fill="#221409"/>
+    <path d="M440,352 q26,12 44,6 l-2,48 q-24,8 -44,-4 Z" fill="#2e1c0d"/>
+    <!-- torso leaning into the work -->
+    <path d="M444,282 q20,-8 34,6 q10,10 12,26 l-4,48 q-24,10 -46,2 l-6,-52 q0,-20 10,-30 Z" fill="#1c1109"/>
+    <!-- head in profile, scarf and low bun -->
+    <path d="M452,238 q16,-8 27,4 q9,11 4,24 q-4,11 -16,14 q-13,3 -21,-6 q-8,-11 -2,-23 q3,-8 8,-13 Z" fill="#20130a"/>
+    <path d="M478,262 q4,-4 6,-1 q2,4 -2,7 l-6,2 Z" fill="#241509"/>
+    <path d="M448,236 q-14,2 -16,16 q-2,12 8,18 q-4,-16 8,-34 Z" fill="#160d06"/>
+    <circle cx="436" cy="262" r="9" fill="#160d06"/>
+    <!-- neck -->
+    <path d="M460,278 l14,-4 4,12 -16,6 Z" fill="#1c1109"/>
+    <!-- far arm, gripping the shank bar low -->
+    <path d="M448,296 q22,16 44,22 l22,4 -4,14 -26,-4 q-26,-8 -42,-24 Z" fill="#170e07"/>
+    <!-- near arm, extended to the tilt -->
+    <path d="M462,290 q28,6 52,16 l18,8 -6,14 -20,-8 q-26,-10 -50,-16 Z" fill="#20130a"/>
+    <!-- leather mitts -->
+    <path d="M528,310 q10,-2 14,6 q2,8 -6,12 q-10,2 -14,-6 q-2,-8 6,-12 Z" fill="#2e1c0d"/>
+    <path d="M508,318 q10,-2 14,6 q2,8 -6,12 q-10,2 -14,-6 q-2,-8 6,-12 Z" fill="#241608"/>
+    <!-- rim light: the pour draws her out of the dark -->
+    <path d="M481,244 q7,9 2,21 q-4,9 -13,12" fill="none" stroke="#ffb066" stroke-width="2.6" opacity="0.9" stroke-linecap="round"/>
+    <path d="M474,276 l14,-4" stroke="#ff9a4a" stroke-width="2" opacity="0.7" stroke-linecap="round"/>
+    <path d="M488,292 q10,16 2,66" fill="none" stroke="#ffb066" stroke-width="3" opacity="0.8" stroke-linecap="round"/>
+    <path d="M462,290 q28,6 52,16 l16,7" fill="none" stroke="#ffcb8a" stroke-width="2.2" opacity="0.85" stroke-linecap="round"/>
+    <path d="M484,398 q6,26 -2,52" fill="none" stroke="#ff9a4a" stroke-width="2.4" opacity="0.55" stroke-linecap="round"/>
+    <path d="M490,534 l8,36" stroke="#ff9a4a" stroke-width="2" opacity="0.4" stroke-linecap="round"/>
+    <path d="M470,262 q4,2 6,6" stroke="#ffd9a8" stroke-width="2" opacity="0.9" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- shank bar and the tilted vessel -->
+  <g>
+    <path d="M514,322 L586,300" stroke="url(#steelG)" stroke-width="7" stroke-linecap="round"/>
+    <path d="M534,308 L596,326" stroke="url(#steelG)" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="591" cy="313" r="30" fill="none" stroke="#20242c" stroke-width="6"/>
+    <!-- vessel body tilted toward the cup -->
+    <path d="M566,290 q-12,26 6,44 q20,18 44,6 q16,-10 14,-30 l-10,-18 q-28,-14 -54,-2 Z" fill="url(#vesselShell)"/>
+    <path d="M566,290 q26,-12 54,2 l4,8 q-30,-14 -60,-2 Z" fill="#0e0b09"/>
+    <!-- the molten mouth, source of all light -->
+    <ellipse cx="596" cy="296" rx="26" ry="9" transform="rotate(18 596 296)" fill="url(#moltenPool)"/>
+    <ellipse cx="600" cy="297" rx="14" ry="4.5" transform="rotate(18 600 297)" fill="#fffbe6"/>
+    <path d="M614,304 q6,2 8,8 l-6,2 q-3,-6 -2,-10 Z" fill="#ffd45e"/>
+    <path d="M572,318 q10,14 30,12" fill="none" stroke="#ff8c2a" stroke-width="2.4" opacity="0.6" stroke-linecap="round"/>
+    <!-- the stream -->
+    <path d="M612,306 C616,336 616,372 614,398 L615,412" fill="none" stroke="#ff7a1a" stroke-width="15" stroke-linecap="round" opacity="0.35"/>
+    <path d="M612,306 C616,336 616,372 614,398 L615,412" fill="none" stroke="url(#streamG)" stroke-width="7" stroke-linecap="round"/>
+    <path d="M612,306 C616,336 616,372 614,398 L615,412" fill="none" stroke="#fffbe6" stroke-width="2.6" stroke-linecap="round"/>
+    <!-- splash at the cup -->
+    <path d="M606,410 q-8,-6 -12,-14" stroke="#ffd45e" stroke-width="2" opacity="0.8" stroke-linecap="round" fill="none"/>
+    <path d="M624,410 q8,-8 10,-16" stroke="#ffd45e" stroke-width="2" opacity="0.8" stroke-linecap="round" fill="none"/>
+    <!-- sparks climbing the light -->
+    <circle cx="588" cy="276" r="4" fill="url(#emberDot)"/>
+    <circle cx="632" cy="292" r="5" fill="url(#emberDot)"/>
+    <circle cx="646" cy="342" r="3.4" fill="url(#emberDot)"/>
+    <circle cx="590" cy="360" r="3" fill="url(#emberDot)"/>
+    <circle cx="652" cy="398" r="4.4" fill="url(#emberDot)"/>
+    <circle cx="576" cy="404" r="2.6" fill="url(#emberDot)"/>
+    <circle cx="662" cy="258" r="3.2" fill="url(#emberDot)"/>
+    <circle cx="612" cy="234" r="2.4" fill="url(#emberDot)"/>
+    <circle cx="672" cy="446" r="2.8" fill="url(#emberDot)"/>
+    <circle cx="558" cy="336" r="2.2" fill="url(#emberDot)"/>
+  </g>
+
+  <!-- ============ FOREGROUND: three silent attendants of the work ============ -->
+  <!-- the drawing that authors -->
+  <g transform="rotate(-4 180 572)">
+    <path d="M76,548 L292,540 L300,600 L84,610 Z" fill="url(#parchG)"/>
+    <path d="M76,548 L292,540 L293,548 L77,556 Z" fill="#8a7350" opacity="0.5"/>
+    <path d="M76,548 q-10,4 -8,14 q2,8 12,8 l2,-20 Z" fill="#2a2114"/>
+    <path d="M300,600 q10,-2 10,-12 q0,-8 -10,-10 Z" fill="#2a2114"/>
+    <path d="M120,560 q14,-10 24,2 q8,10 0,20 q-10,10 -20,2 q-8,-8 -4,-24" fill="none" stroke="#c9a86a" stroke-width="1.6" opacity="0.55"/>
+    <path d="M126,592 l30,-2 M126,598 l44,-2" stroke="#c9a86a" stroke-width="1.3" opacity="0.45"/>
+    <path d="M176,556 l0,44" stroke="#c9a86a" stroke-width="1" opacity="0.35"/>
+    <path d="M190,586 q16,-24 34,-26 q16,-2 22,12 l-8,22 q-24,6 -48,-8" fill="none" stroke="#c9a86a" stroke-width="1.5" opacity="0.5"/>
+    <path d="M196,566 l52,-4 M204,574 l36,-2" stroke="#c9a86a" stroke-width="1.1" opacity="0.4"/>
+    <circle cx="258" cy="556" r="5" fill="none" stroke="#c9a86a" stroke-width="1.3" opacity="0.5"/>
+    <path d="M258,551 l0,10 M253,556 l10,0" stroke="#c9a86a" stroke-width="1" opacity="0.5"/>
+  </g>
+  <!-- the calipers that audit -->
+  <g>
+    <path d="M760,462 q-24,44 -38,88 l6,4 q22,-42 40,-86 Z" fill="url(#steelG)"/>
+    <path d="M764,462 q18,44 30,90 l-7,3 q-18,-44 -31,-89 Z" fill="url(#steelG)"/>
+    <circle cx="762" cy="466" r="9" fill="#2c313c"/>
+    <circle cx="762" cy="466" r="3.6" fill="#8a929e"/>
+    <path d="M726,552 q4,8 12,8" fill="none" stroke="#4a505c" stroke-width="4" stroke-linecap="round"/>
+    <path d="M792,552 q-2,9 -10,10" fill="none" stroke="#4a505c" stroke-width="4" stroke-linecap="round"/>
+    <path d="M756,474 q-20,40 -34,80" fill="none" stroke="#ffb066" stroke-width="1.6" opacity="0.6" stroke-linecap="round"/>
+    <path d="M746,500 L779,504" stroke="#3a404c" stroke-width="3"/>
+    <path d="M746,498 L779,502" stroke="#8a929e" stroke-width="1" opacity="0.6"/>
+  </g>
+  <!-- the stone that remembers -->
+  <g>
+    <path d="M1022,538 L1158,530 L1168,600 L1014,608 Z" fill="#241a12"/>
+    <path d="M1022,538 L1158,530 L1160,540 L1024,548 Z" fill="#4a3826" opacity="0.8"/>
+    <path d="M1014,608 L1024,548 L1022,538 L1006,600 Z" fill="#120c07"/>
+    <path d="M1036,556 l0,14 M1046,555 l0,14 M1056,554 l0,14 M1066,554 l0,14 M1076,553 l0,14" stroke="#c9a86a" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
+    <path d="M1090,552 l0,14 M1100,552 l0,14 M1110,551 l0,14" stroke="#c9a86a" stroke-width="2" opacity="0.42" stroke-linecap="round"/>
+    <path d="M1038,578 l0,14 M1048,577 l0,14 M1058,576 l0,14 M1068,576 l0,14" stroke="#c9a86a" stroke-width="2" opacity="0.4" stroke-linecap="round"/>
+    <path d="M1082,575 l0,14 M1092,574 l0,14" stroke="#c9a86a" stroke-width="2" opacity="0.34" stroke-linecap="round"/>
+    <path d="M1122,560 q8,-8 16,0" fill="none" stroke="#c9a86a" stroke-width="1.6" opacity="0.4"/>
+    <path d="M1022,540 L1024,548" stroke="#ffb066" stroke-width="1.6" opacity="0.5"/>
+  </g>
+
+  <!-- drifting embers across the hall -->
+  <circle cx="340" cy="330" r="2" fill="url(#emberDot)" opacity="0.7"/>
+  <circle cx="300" cy="420" r="1.6" fill="url(#emberDot)" opacity="0.6"/>
+  <circle cx="760" cy="330" r="2.2" fill="url(#emberDot)" opacity="0.7"/>
+  <circle cx="838" cy="422" r="1.8" fill="url(#emberDot)" opacity="0.5"/>
+  <circle cx="516" cy="212" r="1.8" fill="url(#emberDot)" opacity="0.6"/>
+  <circle cx="708" cy="238" r="1.4" fill="url(#emberDot)" opacity="0.5"/>
+  <circle cx="422" cy="180" r="1.2" fill="url(#emberDot)" opacity="0.4"/>
+  <circle cx="884" cy="256" r="1.5" fill="url(#emberDot)" opacity="0.45"/>
+
+  <!-- vignette to seat the scene -->
+  <rect x="0" y="0" width="1200" height="630" fill="url(#vignette)"/>
+
+  <!-- wordmark -->
+  <text x="62" y="96" font-family="Georgia, 'Times New Roman', serif" font-size="58" letter-spacing="14" fill="url(#titleG)">THANATOS</text>
+  <text x="64" y="134" font-family="Georgia, 'Times New Roman', serif" font-size="19" letter-spacing="2" fill="#c9a06a">Migrate the stack. Preserve the behaviour. Prove it.</text>
+  <path d="M64,110 L560,110" stroke="#8a5a2b" stroke-width="1.4" opacity="0.55"/>
+</svg>
