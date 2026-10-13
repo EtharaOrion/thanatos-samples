@@ -56,11 +56,11 @@ The verdict is the audit outcome recorded at the sealed digest, and `none` means
 
 ## Dataset structure
 
-| Bundle | Task | Keywords | Registration | Sealed at |
-| --- | --- | --- | --- | --- |
-| [`3242f8bb-bd4f-5c31-a2a6-663dbc2f3212`](3242f8bb-bd4f-5c31-a2a6-663dbc2f3212/) | `hard-migrations/3242f8bb-bd4f-5c31-a2a6-663dbc2f3212` | absent | adopted | unsealed |
-| [`407a8115-5169-55d1-8aea-12b0a93bea74`](407a8115-5169-55d1-8aea-12b0a93bea74/) | `twentyhq/twenty-cookie-sessions` | authentication, concurrency, database, react, typescript | adopted | unsealed |
-| [`7035333c-d9a3-530d-89f4-4ff9e95e6f36`](7035333c-d9a3-530d-89f4-4ff9e95e6f36/) | `yllibed/repl-mcp-sdk-2` | concurrency, csharp, dotnet, mcp, protocol-migration | adopted | unsealed |
+| Bundle | Task | Keywords | Registration | Sealed at | Tier |
+| --- | --- | --- | --- | --- | --- |
+| [`3242f8bb-bd4f-5c31-a2a6-663dbc2f3212`](3242f8bb-bd4f-5c31-a2a6-663dbc2f3212/) | `hard-migrations/3242f8bb-bd4f-5c31-a2a6-663dbc2f3212` | absent | adopted | unsealed | - |
+| [`407a8115-5169-55d1-8aea-12b0a93bea74`](407a8115-5169-55d1-8aea-12b0a93bea74/) | `twentyhq/twenty-cookie-sessions` | authentication, concurrency, database, react, typescript | adopted | unsealed | - |
+| [`7035333c-d9a3-530d-89f4-4ff9e95e6f36`](7035333c-d9a3-530d-89f4-4ff9e95e6f36/) | `yllibed/repl-mcp-sdk-2` | concurrency, csharp, dotnet, mcp, protocol-migration | adopted | unsealed | - |
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#131a33","primaryTextColor":"#e8ecff","primaryBorderColor":"#845EF7","lineColor":"#22d3ee","fontFamily":"monospace"}}}%%
