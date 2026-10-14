@@ -1,5 +1,3 @@
-GENERATED SECTION. DO NOT HAND-EDIT.
-
 <p align="center"><img src="images/hero.svg" alt="THANATOS" width="720"></p>
 
 # THANATOS: samples
@@ -22,7 +20,7 @@ Each bundle is one Harbor task in a directory named by its content-derived uuid5
 | --- | --- |
 | Bundles | 3 of 30 |
 | Sealed | 0 of 3 |
-| Registrations | adopted (3) |
+| Registrations | unregistered (3) |
 | Audit verdicts | none (3) |
 | Harbor schema | 1.4 (3) |
 
@@ -32,7 +30,7 @@ Difficulty is measured by the signed pilot alone and never declared in a bundle,
 
 ## Evidence status
 
-The verdict is the audit outcome recorded at the sealed digest, and `none` means no verdict has landed for that digest yet. Only a FORGE invocation removes a bundle from this lane, so removal waits for the next one.
+The verdict is the audit outcome recorded at the sealed digest, and `none` means no verdict has landed for that digest yet. Only an authoring run removes a bundle from this lane, so removal waits for the next one.
 
 | uuid | Verdict | Sealed digest | Stream |
 | --- | --- | --- | --- |
@@ -58,9 +56,9 @@ The verdict is the audit outcome recorded at the sealed digest, and `none` means
 
 | Bundle | Task | Keywords | Registration | Sealed at | Tier |
 | --- | --- | --- | --- | --- | --- |
-| [`3242f8bb-bd4f-5c31-a2a6-663dbc2f3212`](3242f8bb-bd4f-5c31-a2a6-663dbc2f3212/) | `hard-migrations/3242f8bb-bd4f-5c31-a2a6-663dbc2f3212` | absent | adopted | unsealed | - |
-| [`407a8115-5169-55d1-8aea-12b0a93bea74`](407a8115-5169-55d1-8aea-12b0a93bea74/) | `twentyhq/twenty-cookie-sessions` | authentication, concurrency, database, react, typescript | adopted | unsealed | - |
-| [`7035333c-d9a3-530d-89f4-4ff9e95e6f36`](7035333c-d9a3-530d-89f4-4ff9e95e6f36/) | `yllibed/repl-mcp-sdk-2` | concurrency, csharp, dotnet, mcp, protocol-migration | adopted | unsealed | - |
+| [`3242f8bb-bd4f-5c31-a2a6-663dbc2f3212`](3242f8bb-bd4f-5c31-a2a6-663dbc2f3212/) | `hard-migrations/3242f8bb-bd4f-5c31-a2a6-663dbc2f3212` | absent | unregistered | unsealed | - |
+| [`407a8115-5169-55d1-8aea-12b0a93bea74`](407a8115-5169-55d1-8aea-12b0a93bea74/) | `twentyhq/twenty-cookie-sessions` | authentication, concurrency, database, react, typescript | unregistered | unsealed | - |
+| [`7035333c-d9a3-530d-89f4-4ff9e95e6f36`](7035333c-d9a3-530d-89f4-4ff9e95e6f36/) | `yllibed/repl-mcp-sdk-2` | concurrency, csharp, dotnet, mcp, protocol-migration | unregistered | unsealed | - |
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#131a33","primaryTextColor":"#e8ecff","primaryBorderColor":"#845EF7","lineColor":"#22d3ee","fontFamily":"monospace"}}}%%
@@ -81,7 +79,7 @@ flowchart LR
 flowchart LR
     staging["staging/"]
     staging --> samples["samples/<br/>3 of 30"]
-    samples --> delivery["delivery/<br/>0 of 10000"]
+    samples --> delivery["delivery/<br/>0 of 150"]
     delivery --> stock["stock/<br/>0 of 10000"]
 ```
 
