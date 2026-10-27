@@ -112,3 +112,9 @@ MIT. See [LICENSE](LICENSE).
 - Vulnerability and benchmark-integrity disclosure: security@ethara.ai, route documented in [SECURITY.md](SECURITY.md)
 - Conduct: conduct@ethara.ai, per [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 - Contributions: [CONTRIBUTING.md](CONTRIBUTING.md) is the route in, and the reading path for everything else starts at [INDEX.md](INDEX.md)
+
+---
+
+## Copyright
+
+Copyright (c) 2026 Green Rider Technology LLP (Ethara AI). All rights reserved.
